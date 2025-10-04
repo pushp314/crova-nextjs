@@ -29,7 +29,6 @@ export default function Footer() {
               <ul className="space-y-2">
                 <li><Link href="/women" className="hover:underline">Women</Link></li>
                 <li><Link href="/men" className="hover:underline">Men</Link></li>
-                <li><Link href="/embroidered" className="hover:underline">Embroidered</Link></li>
                 <li><Link href="#" className="hover:underline">New Arrivals</Link></li>
               </ul>
             </div>

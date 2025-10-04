@@ -12,7 +12,6 @@ import { Badge } from '../ui/badge';
 import { useWishlist } from '@/contexts/wishlist-context';
 
 const navLinks = [
-  { href: '/embroidered', label: 'Embroidered' },
   { href: '/women', label: 'Women' },
   { href: '/men',label: 'Men' },
 ];

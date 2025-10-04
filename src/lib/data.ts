@@ -10,7 +10,7 @@ const products: Product[] = [
     description: 'Exquisitely crafted from pure silk, this blouse features intricate floral embroidery along the sleeves and collar. Its lightweight fabric and relaxed fit make it perfect for both day and evening wear. A true statement piece that combines traditional artistry with modern style.',
     price: 189.99,
     images: [getImage('prod_1_1'), getImage('prod_1_2'), getImage('prod_1_3')],
-    category: 'embroidered',
+    category: 'women',
     featured: true,
     sizes: ['XS', 'S', 'M', 'L'],
     colors: ['Ivory', 'Black'],
