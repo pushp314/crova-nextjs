@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import Image from 'next/image';
-import { Heart, Loader2, Sparkles } from 'lucide-react';
+import { Heart, Loader2, Sparkles, X } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -10,8 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useCart } from '@/contexts/cart-context';
+import { useWishlist } from '@/contexts/wishlist-context';
 import { Card } from '../ui/card';
 import { summarizeProductDescription } from '@/ai/flows/summarize-product-descriptions';
+import { cn } from '@/lib/utils';
 
 type ProductDetailClientProps = {
   product: Product;
@@ -21,11 +23,22 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const { addToCart } = useCart();
+  const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
   const [summary, setSummary] = useState('');
   const [isPending, startTransition] = useTransition();
 
+  const isWishlisted = wishlistItems.some(item => item.id === product.id);
+
   const handleAddToCart = () => {
     addToCart(product, selectedSize, selectedColor);
+  };
+
+  const handleWishlistToggle = () => {
+    if (isWishlisted) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
   };
 
   const handleGenerateSummary = () => {
@@ -108,8 +121,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             <Button size="lg" className="flex-1" onClick={handleAddToCart}>
               Add to Cart
             </Button>
-            <Button variant="outline" size="icon" className="h-12 w-12">
-              <Heart className="h-6 w-6" />
+            <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
+              <Heart className={cn("h-6 w-6", isWishlisted && "fill-destructive text-destructive")} />
               <span className="sr-only">Add to Wishlist</span>
             </Button>
           </div>

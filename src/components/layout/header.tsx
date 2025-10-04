@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Icons } from '@/components/icons';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Badge } from '../ui/badge';
+import { useWishlist } from '@/contexts/wishlist-context';
 
 const navLinks = [
   { href: '/embroidered', label: 'Embroidered' },
@@ -18,6 +19,7 @@ const navLinks = [
 
 export default function Header() {
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const isMobile = useIsMobile();
   
   const DesktopNav = () => (
@@ -87,11 +89,18 @@ export default function Header() {
             <Search className="h-5 w-5" />
             <span className="sr-only">Search</span>
           </Button>
-          <Button variant="ghost" size="icon">
-            <Heart className="h-5 w-5" />
-            <span className="sr-only">Wishlist</span>
-          </Button>
-          <Link href="/login" passHref>
+          <Link href="/wishlist" passHref>
+            <Button variant="ghost" size="icon" className="relative">
+              <Heart className="h-5 w-5" />
+              {wishlistCount > 0 && (
+                <Badge variant="destructive" className="absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0 text-xs">
+                  {wishlistCount}
+                </Badge>
+              )}
+              <span className="sr-only">Wishlist</span>
+            </Button>
+          </Link>
+          <Link href="/profile" passHref>
             <Button variant="ghost" size="icon">
               <User className="h-5 w-5" />
               <span className="sr-only">Account</span>
