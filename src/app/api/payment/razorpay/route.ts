@@ -31,11 +31,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Cart is empty' }, { status: 400 });
     }
 
+    // Check stock before creating order
+    for (const item of cart.items) {
+      if (item.product.stock < item.quantity) {
+        return NextResponse.json({ message: `Not enough stock for ${item.product.name}. Available: ${item.product.stock}, Requested: ${item.quantity}` }, { status: 400 });
+      }
+    }
+
     const totalAmount = cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0);
 
     const payment_capture = 1;
     const amountInPaise = Math.round(totalAmount * 100);
-    const currency = 'INR'; // Change if you use a different currency
+    const currency = 'INR'; 
 
     const options = {
       amount: amountInPaise,
@@ -46,7 +53,7 @@ export async function POST(req: Request) {
 
     const response = await razorpay.orders.create(options);
 
-    // Create a PENDING order in the database
+    // Create a PENDING order in the database which will be updated by the webhook
     await prisma.order.create({
         data: {
             userId: session.user.id,
@@ -54,7 +61,7 @@ export async function POST(req: Request) {
             status: 'PENDING',
             paymentMethod: 'razorpay',
             paymentStatus: 'PENDING',
-            paymentId: response.id, // Store Razorpay order_id
+            paymentId: response.id, // Store Razorpay order_id here initially
             items: {
                 create: cart.items.map(item => ({
                     productId: item.productId,

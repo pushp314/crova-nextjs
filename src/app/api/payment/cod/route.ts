@@ -30,24 +30,27 @@ export async function POST() {
     let totalAmount = 0;
     const orderItemsData = [];
 
-    for (const item of cart.items) {
-      if (item.product.stock < item.quantity) {
-        return NextResponse.json({ message: `Not enough stock for ${item.product.name}. Available: ${item.product.stock}, Requested: ${item.quantity}` }, { status: 400 });
-      }
-      totalAmount += item.product.price * item.quantity;
-      orderItemsData.push({
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.product.price,
-      });
-    }
-
+    // Use a transaction to check stock and create order atomically
     const newOrder = await prisma.$transaction(async (tx) => {
+      for (const item of cart.items) {
+        const product = await tx.product.findUnique({ where: { id: item.productId } });
+        if (!product || product.stock < item.quantity) {
+          throw new Error(`Not enough stock for ${item.product.name}. Available: ${product?.stock || 0}, Requested: ${item.quantity}`);
+        }
+        totalAmount += item.product.price * item.quantity;
+        orderItemsData.push({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.product.price,
+        });
+      }
+
+      // Create the order
       const order = await tx.order.create({
         data: {
           userId,
           totalAmount,
-          status: OrderStatus.PENDING,
+          status: OrderStatus.PROCESSING, // Or PENDING, depending on business logic
           paymentMethod: 'cod',
           paymentStatus: PaymentStatus.PENDING,
           items: {
@@ -57,6 +60,7 @@ export async function POST() {
         include: { items: true },
       });
 
+      // Decrement stock for each item
       for (const item of cart.items) {
         await tx.product.update({
           where: { id: item.productId },
@@ -64,6 +68,7 @@ export async function POST() {
         });
       }
 
+      // Clear the user's cart
       await tx.cartItem.deleteMany({
         where: { cartId: cart.id },
       });
@@ -73,8 +78,12 @@ export async function POST() {
 
     return NextResponse.json(newOrder, { status: 201 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST /api/payment/cod Error:', error);
+    // Check if the error is due to insufficient stock from our custom error
+    if (error.message.includes('Not enough stock')) {
+        return NextResponse.json({ message: error.message }, { status: 400 });
+    }
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }
 }

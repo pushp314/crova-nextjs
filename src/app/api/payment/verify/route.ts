@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
-import { PaymentStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 
 const razorpayWebhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET!;
 
@@ -28,14 +28,14 @@ export async function POST(req: Request) {
   try {
     if (event === 'payment.captured') {
       const payment = body.payload.payment.entity;
-      const orderId = payment.order_id;
+      const razorpayOrderId = payment.order_id;
       
       const order = await prisma.order.findFirst({
-        where: { paymentId: orderId },
+        where: { paymentId: razorpayOrderId },
         include: { items: true },
       });
 
-      if (order && order.paymentStatus !== 'PAID') {
+      if (order && order.paymentStatus !== PaymentStatus.PAID) {
          // Use a transaction to ensure atomicity
         await prisma.$transaction(async (tx) => {
             // 1. Update order status to PAID
@@ -43,7 +43,8 @@ export async function POST(req: Request) {
               where: { id: order.id },
               data: {
                 paymentStatus: PaymentStatus.PAID,
-                paymentId: payment.id, // Can update with payment_id
+                status: OrderStatus.PROCESSING, // Update order status
+                paymentId: payment.id, // Replace order_id with actual payment_id
               },
             });
 
@@ -69,14 +70,24 @@ export async function POST(req: Request) {
       }
     } else if (event === 'payment.failed') {
         const payment = body.payload.payment.entity;
-        const orderId = payment.order_id;
+        const razorpayOrderId = payment.order_id;
         
-        await prisma.order.updateMany({
-            where: { paymentId: orderId },
-            data: {
-                paymentStatus: PaymentStatus.FAILED
-            }
+        // Find the order and update its status to FAILED.
+        // Also, we need to revert the stock if it was held.
+        // In our current flow, stock is only decremented on success, so no need to revert.
+        const order = await prisma.order.findFirst({
+          where: { paymentId: razorpayOrderId }
         });
+
+        if (order) {
+            await prisma.order.update({
+              where: { id: order.id },
+              data: {
+                paymentStatus: PaymentStatus.FAILED,
+                status: OrderStatus.CANCELLED, // Or a new 'PAYMENT_FAILED' status
+              },
+            });
+        }
     }
 
     return NextResponse.json({ status: 'ok' });
