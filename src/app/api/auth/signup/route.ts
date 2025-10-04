@@ -3,8 +3,7 @@ import { prisma } from '@/lib/db';
 import { hash } from 'bcrypt';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-// In a real app, you would use a library like nodemailer to send emails
-// For this example, we'll log to the console.
+import { sendEmail } from '@/lib/mail';
 
 const signupFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -13,26 +12,27 @@ const signupFormSchema = z.object({
 });
 
 async function sendVerificationEmail(email: string, token: string) {
-    const verificationUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/verify-email?token=${token}`;
-    console.log(`
-      ================================================
-      HI, THERE!
-      
-      THIS IS A MOCK EMAIL. IN A REAL APP, THIS WOULD BE SENT TO THE USER.
+    const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
+    const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2>Welcome to NOVA!</h2>
+            <p>Thanks for signing up. Please verify your email address by clicking the link below:</p>
+            <p>
+                <a href="${verificationUrl}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                    Verify Your Email
+                </a>
+            </p>
+            <p>If you did not sign up for an account, please ignore this email.</p>
+            <hr />
+            <p style="font-size: 0.8em; color: #888;">This link will expire in 24 hours.</p>
+        </div>
+    `;
 
-      PLEASE CLICK THE LINK BELOW TO VERIFY YOUR EMAIL ADDRESS.
-      
-      Verification URL: ${verificationUrl}
-
-      ================================================
-    `);
-    // In a real app:
-    // await transporter.sendMail({
-    //   from: '"NOVA" <noreply@nova.com>',
-    //   to: email,
-    //   subject: "Verify your email address",
-    //   html: `<p>Please click <a href="${verificationUrl}">here</a> to verify your email address.</p>`,
-    // });
+    await sendEmail({
+        to: email,
+        subject: 'Verify your NOVA account',
+        html,
+    });
 }
 
 export async function POST(req: Request) {

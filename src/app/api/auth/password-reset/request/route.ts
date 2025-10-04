@@ -2,29 +2,34 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
+import { sendEmail } from '@/lib/mail';
 
 const requestSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
 });
 
-// This is a mock email function. In a real app, you would use a service like Nodemailer or SendGrid.
 async function sendPasswordResetEmail(email: string, token: string) {
   const resetUrl = `${process.env.NEXTAUTH_URL}/password-reset/reset?token=${token}`;
-  console.log(`
-    ================================================
-    PASSWORD RESET REQUEST
-    
-    THIS IS A MOCK EMAIL. IN A REAL APP, THIS WOULD BE SENT TO THE USER'S INBOX.
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Reset Your Password</h2>
+        <p>You requested a password reset for your NOVA account. Please click the link below to set a new password:</p>
+        <p>
+            <a href="${resetUrl}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                Reset Your Password
+            </a>
+        </p>
+        <p>If you did not request a password reset, please ignore this email.</p>
+        <hr />
+        <p style="font-size: 0.8em; color: #888;">This link will expire in 1 hour.</p>
+    </div>
+  `;
 
-    Please click the link below to reset your password.
-    
-    Reset URL: ${resetUrl}
-
-    If you did not request a password reset, please ignore this email.
-    ================================================
-  `);
-  // In a real app:
-  // await sendEmail({ to: email, subject: 'Reset Your Password', html: ... });
+  await sendEmail({
+    to: email,
+    subject: 'Reset your NOVA password',
+    html,
+  });
 }
 
 export async function POST(req: Request) {
@@ -36,10 +41,7 @@ export async function POST(req: Request) {
       where: { email },
     });
 
-    // We don't want to reveal if a user exists or not for security reasons.
-    // So, we'll send a success response even if the user is not found.
     if (user) {
-      // Create a password reset token
       const passwordResetToken = await prisma.passwordResetToken.create({
         data: {
           identifier: email,
@@ -48,11 +50,10 @@ export async function POST(req: Request) {
         },
       });
       
-      // Send the email
       await sendPasswordResetEmail(email, passwordResetToken.token);
     }
 
-    return NextResponse.json({ message: 'If an account with that email exists, we have sent a password reset link.' }, { status: 200 });
+    return NextResponse.json({ message: 'If an account with that email exists, a password reset link has been sent.' }, { status: 200 });
 
   } catch (error) {
     if (error instanceof z.ZodError) {
