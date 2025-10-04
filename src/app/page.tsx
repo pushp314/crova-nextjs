@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
 import ProductGrid from '@/components/product/product-grid';
@@ -25,15 +28,31 @@ export default function Home() {
         )}
         <div className="absolute inset-0 bg-black/30" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
-          <h1 className="text-4xl font-bold md:text-6xl lg:text-7xl">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-4xl font-bold md:text-6xl lg:text-7xl"
+          >
             Effortless Elegance
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg md:text-xl">
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-4 max-w-2xl text-lg md:text-xl"
+          >
             Discover our new collection of timeless pieces.
-          </p>
-          <Button asChild className="mt-8" size="lg" variant="secondary">
-            <Link href="#featured-products">Shop Now</Link>
-          </Button>
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <Button asChild className="mt-8" size="lg" variant="secondary">
+              <Link href="#featured-products">Shop Now</Link>
+            </Button>
+          </motion.div>
         </div>
       </section>
 
