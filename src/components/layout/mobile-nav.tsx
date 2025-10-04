@@ -1,14 +1,18 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, Search, Heart, User } from 'lucide-react';
+import { Home, Heart, User, SearchIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
 
 const navItems = [
   { href: '/', icon: Home, label: 'Home' },
-  { href: '/search', icon: Search, label: 'Search' },
+  { href: '/search', icon: SearchIcon, label: 'Search' },
   { href: '/wishlist', icon: Heart, label: 'Wishlist' },
   { href: '/profile', icon: User, label: 'Profile' },
 ];
@@ -18,6 +22,11 @@ export default function MobileBottomNav() {
   const isMobile = useIsMobile();
   
   if (!isMobile) {
+    return null;
+  }
+  
+  // Do not show the bottom nav on the search page for a better UI
+  if (pathname === '/search') {
     return null;
   }
 
