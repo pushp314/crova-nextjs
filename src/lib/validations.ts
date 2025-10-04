@@ -47,3 +47,16 @@ export const updateCartItemSchema = z.object({
 export const wishlistItemSchema = z.object({
   productId: z.string().min(1, 'Product ID is required.'),
 });
+
+
+// ============================================================
+// Order Schemas
+// ============================================================
+
+export const orderStatusSchema = z.enum(['PENDING', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
+
+export const createOrderSchema = z.object({}); // No input needed, created from cart
+
+export const updateOrderStatusSchema = z.object({
+  status: orderStatusSchema,
+});
