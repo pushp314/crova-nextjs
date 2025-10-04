@@ -2,8 +2,19 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
-import { productSchema } from '@/lib/validations';
+import { updateProductSchema } from '@/lib/validations';
 import { z } from 'zod';
+
+const postProductSchema = updateProductSchema.required({
+    name: true,
+    description: true,
+    price: true,
+    images: true,
+    stock: true,
+    categoryId: true,
+    sizes: true,
+    colors: true,
+});
 
 export async function GET(req: Request) {
   try {
@@ -38,7 +49,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const data = productSchema.parse(body);
+    const data = postProductSchema.parse(body);
 
     const product = await prisma.product.create({
       data: {
@@ -48,7 +59,12 @@ export async function POST(req: Request) {
         images: data.images,
         stock: data.stock,
         categoryId: data.categoryId,
+        sizes: data.sizes,
+        colors: data.colors
       },
+      include: {
+          category: true,
+      }
     });
 
     return NextResponse.json(product, { status: 201 });

@@ -1,9 +1,8 @@
-
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, Home, Package, Package2, ShoppingCart, Users } from 'lucide-react';
+import { Home, Package, Package2, ShoppingCart, Users, Tag } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +17,7 @@ const navItems = [
   { href: '/admin', icon: Home, label: 'Dashboard' },
   { href: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
   { href: '/admin/products', icon: Package, label: 'Products' },
+  { href: '/admin/categories', icon: Tag, label: 'Categories' },
   { href: '/admin/users', icon: Users, label: 'Customers' },
 ];
 
@@ -45,7 +45,7 @@ export default function AdminLayout({
                 href={item.href}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-                  pathname === item.href && 'bg-muted text-primary'
+                  (pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))) && 'bg-muted text-primary'
                 )}
               >
                 <item.icon className="h-4 w-4" />

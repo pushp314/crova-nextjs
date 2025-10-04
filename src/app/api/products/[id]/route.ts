@@ -73,6 +73,9 @@ export async function PUT(req: Request, { params }: RouteParams) {
     const updatedProduct = await prisma.product.update({
       where: { id },
       data,
+      include: {
+        category: true
+      }
     });
 
     return NextResponse.json(updatedProduct);
@@ -97,10 +100,16 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     }
 
     const { id } = params;
-
-    await prisma.product.delete({
-      where: { id },
+    
+    await prisma.$transaction(async (tx) => {
+        await tx.rating.deleteMany({ where: { productId: id } });
+        await tx.review.deleteMany({ where: { productId: id } });
+        await tx.cartItem.deleteMany({ where: { productId: id } });
+        await tx.wishlistItem.deleteMany({ where: { productId: id } });
+        await tx.orderItem.deleteMany({ where: { productId: id } });
+        await tx.product.delete({ where: { id } });
     });
+
 
     return NextResponse.json({ message: 'Product successfully deleted.' }, { status: 200 });
   } catch (error) {
