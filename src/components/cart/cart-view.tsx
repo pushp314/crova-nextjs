@@ -13,31 +13,7 @@ import { toast } from "sonner";
 
 export default function CartView() {
     const { cartItems, updateQuantity, removeFromCart, totalPrice, cartCount, isLoading } = useCart();
-    const [isCheckingOut, setIsCheckingOut] = useState(false);
     const router = useRouter();
-
-    const handleCheckout = async () => {
-        setIsCheckingOut(true);
-        try {
-            const res = await fetch('/api/orders', { method: 'POST' });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to create order.');
-            }
-            const order = await res.json();
-            toast.success("Order placed successfully!", {
-                description: `Your order #${order.id.substring(0,8)} is being processed.`,
-            });
-            // Cart is cleared on the backend, context will refetch.
-            router.push(`/profile`);
-        } catch (error: any) {
-            toast.error("Checkout failed.", {
-                description: error.message,
-            });
-        } finally {
-            setIsCheckingOut(false);
-        }
-    };
 
     if (isLoading) {
         return (
@@ -89,7 +65,6 @@ export default function CartView() {
                                             size="icon"
                                             className="h-8 w-8"
                                             onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                                            disabled={isCheckingOut}
                                         >
                                             <Minus className="h-4 w-4" />
                                         </Button>
@@ -99,7 +74,6 @@ export default function CartView() {
                                             size="icon"
                                             className="h-8 w-8"
                                             onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                                            disabled={isCheckingOut}
                                         >
                                             <Plus className="h-4 w-4" />
                                         </Button>
@@ -113,7 +87,6 @@ export default function CartView() {
                                     size="icon"
                                     className="h-8 w-8 text-muted-foreground"
                                     onClick={() => removeFromCart(item.productId)}
-                                    disabled={isCheckingOut}
                                 >
                                     <X className="h-4 w-4" />
                                 </Button>
@@ -143,9 +116,8 @@ export default function CartView() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
-                            {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Proceed to Checkout
+                        <Button asChild className="w-full" size="lg">
+                            <Link href="/checkout">Proceed to Checkout</Link>
                         </Button>
                     </CardFooter>
                 </Card>

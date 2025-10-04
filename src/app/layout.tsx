@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import AuthProvider from '@/contexts/auth-provider';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'NOVA - Modern Fashion',
@@ -42,6 +43,7 @@ export default function RootLayout({
             </CartProvider>
           </WishlistProvider>
         </AuthProvider>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       </body>
     </html>
   );
