@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import crypto from 'crypto';
 import { OrderStatus, PaymentStatus } from '@prisma/client';
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { productSearch } from '@/ai/flows/product-search-flow';
 
 export async function GET(req: Request) {

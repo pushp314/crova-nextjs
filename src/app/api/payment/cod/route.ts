@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
 import { OrderStatus, PaymentStatus } from '@prisma/client';
 
 // POST /api/payment/cod - create a new order with Cash on Delivery
