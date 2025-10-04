@@ -1,4 +1,3 @@
-// This is the main endpoint for NextAuth.js.
 import NextAuth from "next-auth";
 import { authOptions } from "@/lib/auth";
 
