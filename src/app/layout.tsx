@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import { CartProvider } from '@/contexts/cart-context';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import MobileBottomNav from '@/components/layout/mobile-nav';
 import { cn } from '@/lib/utils';
 import './globals.css';
+import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
   title: 'NOVA - Modern Fashion',
@@ -33,6 +34,7 @@ export default function RootLayout({
           </div>
           <MobileBottomNav />
           <Toaster />
+          <SonnerToaster />
         </CartProvider>
       </body>
     </html>
