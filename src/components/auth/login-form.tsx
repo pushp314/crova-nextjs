@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -113,7 +114,15 @@ export function LoginForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                 <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <Link
+                    href="/password-reset/request"
+                    className="text-sm font-medium text-primary hover:underline"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
                 <FormControl>
                   <Input 
                     type="password" 
