@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Image from 'next/image';
-import { Heart } from 'lucide-react';
+import { Heart, Loader2, Sparkles } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -11,6 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useCart } from '@/contexts/cart-context';
 import { Card } from '../ui/card';
+import { summarizeProductDescription } from '@/ai/flows/summarize-product-descriptions';
 
 type ProductDetailClientProps = {
   product: Product;
@@ -20,9 +21,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const { addToCart } = useCart();
+  const [summary, setSummary] = useState('');
+  const [isPending, startTransition] = useTransition();
 
   const handleAddToCart = () => {
     addToCart(product, selectedSize, selectedColor);
+  };
+
+  const handleGenerateSummary = () => {
+    startTransition(async () => {
+      const result = await summarizeProductDescription({ description: product.description });
+      setSummary(result.summary);
+    });
   };
   
   return (
@@ -107,8 +117,22 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="description">
               <AccordionTrigger>Product Description</AccordionTrigger>
-              <AccordionContent className="text-base leading-relaxed">
-                {product.description}
+              <AccordionContent className="space-y-4 text-base leading-relaxed">
+                <p>{product.description}</p>
+                <Button variant="outline" size="sm" onClick={handleGenerateSummary} disabled={isPending}>
+                  {isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                  )}
+                  Summarize with AI
+                </Button>
+                {summary && (
+                  <div className="mt-4 rounded-md border bg-secondary/50 p-4 text-sm">
+                    <p className="font-semibold">AI Summary:</p>
+                    <p>{summary}</p>
+                  </div>
+                )}
               </AccordionContent>
             </AccordionItem>
           </Accordion>
