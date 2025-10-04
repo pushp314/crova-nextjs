@@ -35,7 +35,8 @@ export async function GET(req: Request) {
                     }
                 }
             }
-        }
+        },
+        shippingAddress: true,
       },
       orderBy: {
         createdAt: 'desc',

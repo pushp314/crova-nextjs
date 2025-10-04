@@ -3,6 +3,11 @@ import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { razorpay } from '@/lib/razorpay';
 import shortid from 'shortid';
+import { z } from 'zod';
+
+const razorpayOrderSchema = z.object({
+    addressId: z.string().min(1, 'Address ID is required.'),
+});
 
 export async function POST(req: Request) {
   try {
@@ -10,6 +15,9 @@ export async function POST(req: Request) {
     if (!session?.user?.id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
+
+    const body = await req.json();
+    const { addressId } = razorpayOrderSchema.parse(body);
 
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
@@ -57,6 +65,7 @@ export async function POST(req: Request) {
             paymentMethod: 'razorpay',
             paymentStatus: 'PENDING',
             paymentId: response.id, // Store Razorpay order_id here initially
+            shippingAddressId: addressId,
             items: {
                 create: cart.items.map(item => ({
                     productId: item.productId,
@@ -73,6 +82,9 @@ export async function POST(req: Request) {
       amount: response.amount,
     });
   } catch (error) {
+     if (error instanceof z.ZodError) {
+      return NextResponse.json({ message: error.errors[0].message }, { status: 400 });
+    }
     console.error('POST /api/payment/razorpay Error:', error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }

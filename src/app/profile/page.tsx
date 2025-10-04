@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
-import { User, ShoppingBag, Heart, LogOut, Loader2, Edit } from 'lucide-react';
+import { User, ShoppingBag, Heart, LogOut, Loader2, Edit, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { getOrderStatusVariant } from '@/lib/utils';
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
+import AddressManager from '@/components/profile/address-manager';
 
 
 export default function ProfilePage() {
@@ -114,6 +115,11 @@ export default function ProfilePage() {
                   <User className="h-4 w-4" /> Account Details
                 </Button>
               </TabsTrigger>
+               <TabsTrigger value="addresses" asChild>
+                <Button variant="ghost" className="justify-start gap-2">
+                  <MapPin className="h-4 w-4" /> Shipping Addresses
+                </Button>
+              </TabsTrigger>
               <TabsTrigger value="orders" asChild>
                  <Button variant="ghost" className="justify-start gap-2">
                   <ShoppingBag className="h-4 w-4" /> Order History
@@ -167,6 +173,10 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="addresses">
+            <AddressManager />
           </TabsContent>
           
           <TabsContent value="orders">

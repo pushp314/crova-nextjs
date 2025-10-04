@@ -33,7 +33,8 @@ export async function GET(req: Request, { params }: RouteParams) {
                 name: true,
                 email: true,
             }
-        }
+        },
+        shippingAddress: true,
       },
     });
 

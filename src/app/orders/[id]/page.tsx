@@ -153,6 +153,19 @@ export default function OrderDetailPage() {
                     </div>
                 </CardContent>
             </Card>
+
+             {order.shippingAddress && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Shipping Address</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm text-muted-foreground">
+                        <p>{order.shippingAddress.street}</p>
+                        <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}</p>
+                        <p>{order.shippingAddress.country}</p>
+                    </CardContent>
+                </Card>
+            )}
         </div>
       </div>
     </div>

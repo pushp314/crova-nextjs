@@ -1,4 +1,4 @@
-import type { Product as PrismaProduct, Category as PrismaCategory, Order as PrismaOrder, OrderStatus, OrderItem as PrismaOrderItem, PaymentStatus, User as PrismaUser, Review as PrismaReview, Rating as PrismaRating } from '@prisma/client';
+import type { Product as PrismaProduct, Category as PrismaCategory, Order as PrismaOrder, OrderStatus, OrderItem as PrismaOrderItem, PaymentStatus, User as PrismaUser, Review as PrismaReview, Rating as PrismaRating, Address as PrismaAddress } from '@prisma/client';
 
 export type Product = Omit<PrismaProduct, 'createdAt' | 'updatedAt'> & {
   category: PrismaCategory;
@@ -9,7 +9,11 @@ export type Product = Omit<PrismaProduct, 'createdAt' | 'updatedAt'> & {
   averageRating?: number;
 };
 
-export type Category = PrismaCategory;
+export type Category = PrismaCategory & {
+   _count?: {
+    products: number;
+  };
+};
 
 export type CartItem = {
   id: string; // Prisma cart item ID
@@ -27,6 +31,7 @@ export type WishlistItem = {
 export type Order = PrismaOrder & {
   items: OrderItem[];
   user?: Partial<PrismaUser>;
+  shippingAddress: Address | null;
 };
 
 export type OrderItem = PrismaOrderItem & {
@@ -48,3 +53,5 @@ export type Review = PrismaReview & {
 };
 
 export type Rating = PrismaRating;
+
+export type Address = PrismaAddress;

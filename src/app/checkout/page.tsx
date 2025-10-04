@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
-import { Loader2, CreditCard, Truck } from 'lucide-react';
+import { Loader2, CreditCard, Truck, MapPin, PlusCircle } from 'lucide-react';
 import { useCart } from '@/contexts/cart-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Address } from '@/lib/types';
+import { AddressFormDialog } from '@/components/profile/address-form-dialog';
 
 declare global {
   interface Window {
@@ -25,6 +27,11 @@ export default function CheckoutPage() {
   const { cartItems, totalPrice, cartCount, isLoading: isCartLoading, clearCart } = useCart();
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<string | undefined>();
+  const [isAddressLoading, setIsAddressLoading] = useState(true);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -35,10 +42,40 @@ export default function CheckoutPage() {
         router.push('/');
     }
   }, [status, router, isCartLoading, cartCount]);
+
+  useEffect(() => {
+      const fetchAddresses = async () => {
+          if (status === 'authenticated') {
+              setIsAddressLoading(true);
+              try {
+                  const res = await fetch('/api/addresses');
+                  if (res.ok) {
+                      const userAddresses: Address[] = await res.json();
+                      setAddresses(userAddresses);
+                      const defaultAddress = userAddresses.find(a => a.isDefault) || userAddresses[0];
+                      if (defaultAddress) {
+                          setSelectedAddress(defaultAddress.id);
+                      }
+                  }
+              } catch (error) {
+                  console.error('Failed to fetch addresses', error);
+                  toast.error('Could not load your addresses.');
+              } finally {
+                  setIsAddressLoading(false);
+              }
+          }
+      };
+      fetchAddresses();
+  }, [status]);
   
   const handlePayment = async () => {
     if (!session?.user) {
         toast.error('You must be logged in to proceed.');
+        return;
+    }
+
+    if (!selectedAddress) {
+        toast.error('Please select a shipping address.');
         return;
     }
     
@@ -55,8 +92,16 @@ export default function CheckoutPage() {
 
   const handleRazorpayPayment = async () => {
     try {
-        const res = await fetch('/api/payment/razorpay', { method: 'POST' });
-        if (!res.ok) throw new Error('Failed to create Razorpay order.');
+        const res = await fetch('/api/payment/razorpay', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ addressId: selectedAddress })
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || 'Failed to create Razorpay order.');
+        }
 
         const { id: order_id, currency, amount } = await res.json();
         
@@ -93,7 +138,12 @@ export default function CheckoutPage() {
 
   const handleCodPayment = async () => {
     try {
-        const res = await fetch('/api/payment/cod', { method: 'POST' });
+        const res = await fetch('/api/payment/cod', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ addressId: selectedAddress }),
+        });
+
         if (!res.ok) {
             const errorData = await res.json();
             throw new Error(errorData.message || 'Failed to place COD order.');
@@ -104,8 +154,6 @@ export default function CheckoutPage() {
             description: `Your order #${order.id.substring(0,8)} will be delivered soon.`
         });
         
-        // Cart is cleared on the backend, but we also clear it here
-        // to ensure immediate UI update, as there is no page reload.
         clearCart();
         router.push('/profile');
         
@@ -116,7 +164,13 @@ export default function CheckoutPage() {
     }
   };
 
-  if (status === 'loading' || isCartLoading) {
+  const onAddressSaved = (newAddress: Address) => {
+    setAddresses(prev => [...prev, newAddress]);
+    setSelectedAddress(newAddress.id);
+    setIsAddressDialogOpen(false);
+  }
+
+  if (status === 'loading' || isCartLoading || isAddressLoading) {
     return (
         <div className="container py-12 md:py-24">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -134,12 +188,41 @@ export default function CheckoutPage() {
   }
 
   return (
+    <>
     <div className="container py-12 md:py-24">
       <h1 className="mb-8 text-center text-3xl font-bold md:text-4xl">
         Checkout
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <div className="space-y-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Shipping Address</CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => setIsAddressDialogOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add New
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <RadioGroup value={selectedAddress} onValueChange={setSelectedAddress} className="space-y-4">
+                        {addresses.map(address => (
+                            <Label key={address.id} htmlFor={address.id} className="flex items-start gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[:checked]:border-primary">
+                                <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
+                                <div className="flex-1 text-sm">
+                                    <p className="font-semibold">{address.street}</p>
+                                    <p className="text-muted-foreground">{address.city}, {address.state} {address.postalCode}</p>
+                                    <p className="text-muted-foreground">{address.country}</p>
+                                </div>
+                            </Label>
+                        ))}
+                         {addresses.length === 0 && (
+                            <p className="text-muted-foreground text-center py-4">
+                                You have no saved addresses. Please add one.
+                            </p>
+                        )}
+                    </RadioGroup>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Payment Method</CardTitle>
@@ -200,7 +283,7 @@ export default function CheckoutPage() {
                         className="w-full" 
                         size="lg" 
                         onClick={handlePayment} 
-                        disabled={isProcessing || !paymentMethod || cartCount === 0}
+                        disabled={isProcessing || !paymentMethod || cartCount === 0 || !selectedAddress}
                     >
                         {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {paymentMethod === 'cod' ? 'Place Order' : 'Pay Now'}
@@ -210,5 +293,11 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+    <AddressFormDialog 
+        isOpen={isAddressDialogOpen}
+        onOpenChange={setIsAddressDialogOpen}
+        onSave={onAddressSaved}
+    />
+    </>
   );
 }

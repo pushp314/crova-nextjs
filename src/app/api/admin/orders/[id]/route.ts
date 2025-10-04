@@ -28,7 +28,8 @@ export async function PUT(req: Request, { params }: RouteParams) {
       data: { status },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        items: { include: { product: { select: { name: true, images: true } } } }
+        items: { include: { product: { select: { name: true, images: true } } } },
+        shippingAddress: true,
       }
     });
 

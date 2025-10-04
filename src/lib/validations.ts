@@ -73,3 +73,18 @@ export const createOrderSchema = z.object({}); // No input needed, created from 
 export const updateOrderStatusSchema = z.object({
   status: orderStatusSchema,
 });
+
+
+// ============================================================
+// Address Schemas
+// ============================================================
+export const addressSchema = z.object({
+    street: z.string().min(3, 'Street address is required.'),
+    city: z.string().min(2, 'City is required.'),
+    state: z.string().min(2, 'State is required.'),
+    postalCode: z.string().min(4, 'Postal code is required.'),
+    country: z.string().min(2, 'Country is required.'),
+    isDefault: z.boolean().default(false).optional(),
+});
+
+export const updateAddressSchema = addressSchema.partial();
