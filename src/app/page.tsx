@@ -6,12 +6,32 @@ import { motion } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
 import ProductGrid from '@/components/product/product-grid';
-import { getFeaturedProducts } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useEffect, useState } from 'react';
+import { Product } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
-  const featuredProducts = getFeaturedProducts();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const res = await fetch('/api/products?featured=true&limit=4');
+        if (!res.ok) throw new Error("Failed to fetch products");
+        const products = await res.json();
+        // The API doesn't support featured=true, so we'll just take the first 4 for now
+        setFeaturedProducts(products.slice(0, 4));
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
 
   return (
     <div className="flex flex-col">
@@ -61,7 +81,19 @@ export default function Home() {
           <h2 className="mb-8 text-center text-3xl font-bold md:mb-12 md:text-4xl">
             Featured Products
           </h2>
-          <ProductGrid products={featuredProducts} />
+           {isLoading ? (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="aspect-[3/4] w-full" />
+                  <Skeleton className="h-6 w-3/4 mx-auto" />
+                  <Skeleton className="h-6 w-1/4 mx-auto" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ProductGrid products={featuredProducts} />
+          )}
         </div>
       </section>
     </div>

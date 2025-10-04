@@ -1,23 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { Button } from "@/components/ui/button";
 import ProductGrid from "@/components/product/product-grid";
-import { Metadata } from "next";
-
-// This is a client component, so we can't export metadata directly.
-// We can set it in a parent layout or via the Head component if needed.
-// For now, we'll just define it here for reference.
-const metadata: Metadata = {
-    title: "Your Wishlist - NOVA",
-    description: "View and manage items in your wishlist.",
-};
-
 
 export default function WishlistPage() {
-    const { wishlistItems } = useWishlist();
+    const { wishlistItems, isLoading } = useWishlist();
+
+    if (isLoading) {
+        return (
+            <div className="container flex flex-col items-center justify-center gap-4 py-24 text-center">
+                <Loader2 className="h-24 w-24 animate-spin text-muted-foreground" />
+                <h2 className="text-3xl font-bold">Loading Your Wishlist...</h2>
+            </div>
+        );
+    }
 
     if (wishlistItems.length === 0) {
         return (
@@ -32,7 +31,7 @@ export default function WishlistPage() {
         );
     }
 
-    const wishlistedProducts = wishlistItems.map(item => item);
+    const wishlistedProducts = wishlistItems.map(item => item.product);
 
     return (
         <div className="container py-12 md:py-24">

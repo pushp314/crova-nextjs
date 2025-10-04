@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Heart } from 'lucide-react';
+import { Heart, Loader2 } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -13,6 +13,7 @@ import { useCart } from '@/contexts/cart-context';
 import { useWishlist } from '@/contexts/wishlist-context';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 type ProductDetailClientProps = {
   product: Product;
@@ -21,17 +22,17 @@ type ProductDetailClientProps = {
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const { addToCart } = useCart();
-  const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addToCart, isLoading: isCartLoading } = useCart();
+  const { wishlistItems, addToWishlist, removeFromWishlist, isWishlisted, isLoading: isWishlistLoading } = useWishlist();
 
-  const isWishlisted = wishlistItems.some(item => item.id === product.id);
+  const isProductWishlisted = isWishlisted(product.id);
 
   const handleAddToCart = () => {
-    addToCart(product, selectedSize, selectedColor);
+    addToCart(product);
   };
 
   const handleWishlistToggle = () => {
-    if (isWishlisted) {
+    if (isProductWishlisted) {
       removeFromWishlist(product.id);
     } else {
       addToWishlist(product);
@@ -53,6 +54,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                                 fill
                                 className="object-cover"
                                 sizes="(max-width: 768px) 100vw, 50vw"
+                                priority={index === 0}
                             />
                         </div>
                     </Card>
@@ -67,61 +69,75 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <h1 className="text-3xl font-bold md:text-4xl">{product.name}</h1>
           <p className="text-2xl font-semibold">${product.price.toFixed(2)}</p>
 
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Color: {selectedColor}</h2>
-            <RadioGroup
-              value={selectedColor}
-              onValueChange={setSelectedColor}
-              className="flex flex-wrap gap-2"
-            >
-              {product.colors.map((color) => (
-                <Label key={color} htmlFor={`color-${color}`} className="cursor-pointer">
-                  <RadioGroupItem value={color} id={`color-${color}`} className="sr-only" />
-                  <div
-                    className="rounded-full w-8 h-8 border-2"
-                    style={{ backgroundColor: color.toLowerCase(), borderColor: selectedColor === color ? 'hsl(var(--ring))' : 'transparent' }}
-                  ></div>
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
+          {product.colors.length > 1 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Color: {selectedColor}</h2>
+              <RadioGroup
+                value={selectedColor}
+                onValueChange={setSelectedColor}
+                className="flex flex-wrap gap-2"
+              >
+                {product.colors.map((color) => (
+                  <Label key={color} htmlFor={`color-${color}`} className="cursor-pointer">
+                    <RadioGroupItem value={color} id={`color-${color}`} className="sr-only" />
+                    <div
+                      className="rounded-full w-8 h-8 border-2"
+                      style={{ backgroundColor: color.toLowerCase(), borderColor: selectedColor === color ? 'hsl(var(--ring))' : 'transparent' }}
+                      title={color}
+                    ></div>
+                  </Label>
+                ))}
+              </RadioGroup>
+            </div>
+          )}
 
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Size: {selectedSize}</h2>
-            <RadioGroup
-              value={selectedSize}
-              onValueChange={setSelectedSize}
-              className="flex flex-wrap gap-2"
-            >
-              {product.sizes.map((size) => (
-                <Label
-                  key={size}
-                  htmlFor={`size-${size}`}
-                  className={`flex h-10 w-16 cursor-pointer items-center justify-center rounded-md border text-sm font-medium transition-colors
-                  ${selectedSize === size ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
-                >
-                  <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
-                  {size}
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
+          {product.sizes.length > 1 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Size: {selectedSize}</h2>
+              <RadioGroup
+                value={selectedSize}
+                onValueChange={setSelectedSize}
+                className="flex flex-wrap gap-2"
+              >
+                {product.sizes.map((size) => (
+                  <Label
+                    key={size}
+                    htmlFor={`size-${size}`}
+                    className={cn(
+                      "flex h-10 w-16 cursor-pointer items-center justify-center rounded-md border text-sm font-medium transition-colors",
+                      selectedSize === size ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent'
+                    )}
+                  >
+                    <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
+                    {size}
+                  </Label>
+                ))}
+              </RadioGroup>
+            </div>
+          )}
 
           <div className="flex items-center gap-4">
-            <Button size="lg" className="flex-1" onClick={handleAddToCart}>
-              Add to Cart
+            <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={isCartLoading || product.stock === 0}>
+              {isCartLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
             </Button>
-            <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
-              <Heart className={cn("h-6 w-6", isWishlisted && "fill-destructive text-destructive")} />
+            <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle} disabled={isWishlistLoading}>
+              <Heart className={cn("h-6 w-6", isProductWishlisted && "fill-destructive text-destructive")} />
               <span className="sr-only">Add to Wishlist</span>
             </Button>
           </div>
           
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible className="w-full" defaultValue="description">
             <AccordionItem value="description">
               <AccordionTrigger>Product Description</AccordionTrigger>
               <AccordionContent className="space-y-4 text-base leading-relaxed">
                 <p>{product.description}</p>
+              </AccordionContent>
+            </AccordionItem>
+             <AccordionItem value="stock">
+              <AccordionTrigger>Availability</AccordionTrigger>
+              <AccordionContent>
+                <p>{product.stock > 0 ? `${product.stock} items in stock.` : 'This product is currently out of stock.'}</p>
               </AccordionContent>
             </AccordionItem>
           </Accordion>

@@ -2,14 +2,51 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Minus, X, ShoppingCart } from "lucide-react";
+import { Plus, Minus, X, ShoppingCart, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function CartView() {
-    const { cartItems, updateQuantity, removeFromCart, totalPrice, cartCount } = useCart();
+    const { cartItems, updateQuantity, removeFromCart, totalPrice, cartCount, isLoading } = useCart();
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const router = useRouter();
+
+    const handleCheckout = async () => {
+        setIsCheckingOut(true);
+        try {
+            const res = await fetch('/api/orders', { method: 'POST' });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Failed to create order.');
+            }
+            const order = await res.json();
+            toast.success("Order placed successfully!", {
+                description: `Your order #${order.id.substring(0,8)} is being processed.`,
+            });
+            // Cart is cleared on the backend, context will refetch.
+            router.push(`/profile`);
+        } catch (error: any) {
+            toast.error("Checkout failed.", {
+                description: error.message,
+            });
+        } finally {
+            setIsCheckingOut(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 py-16">
+                <Loader2 className="h-24 w-24 animate-spin text-muted-foreground" />
+                <h2 className="text-2xl font-semibold">Loading your cart...</h2>
+            </div>
+        );
+    }
 
     if (cartCount === 0) {
         return (
@@ -42,9 +79,8 @@ export default function CartView() {
                                 <div>
                                     <h3 className="font-semibold">{item.product.name}</h3>
                                     <p className="text-sm text-muted-foreground">
-                                        {item.size} / {item.color}
+                                        Price: ${item.product.price.toFixed(2)}
                                     </p>
-                                    <p className="text-sm font-medium">${item.product.price.toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-2 rounded-md border">
@@ -52,7 +88,8 @@ export default function CartView() {
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                                            disabled={isCheckingOut}
                                         >
                                             <Minus className="h-4 w-4" />
                                         </Button>
@@ -61,7 +98,8 @@ export default function CartView() {
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                                            disabled={isCheckingOut}
                                         >
                                             <Plus className="h-4 w-4" />
                                         </Button>
@@ -74,7 +112,8 @@ export default function CartView() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-muted-foreground"
-                                    onClick={() => removeFromCart(item.id)}
+                                    onClick={() => removeFromCart(item.productId)}
+                                    disabled={isCheckingOut}
                                 >
                                     <X className="h-4 w-4" />
                                 </Button>
@@ -104,7 +143,10 @@ export default function CartView() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" size="lg">Proceed to Checkout</Button>
+                        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
+                            {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Proceed to Checkout
+                        </Button>
                     </CardFooter>
                 </Card>
             </div>

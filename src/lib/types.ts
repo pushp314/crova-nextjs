@@ -1,19 +1,45 @@
-export type Product = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  images: string[];
-  category: 'women' | 'men';
-  featured?: boolean;
+import type { Product as PrismaProduct, Category, OrderStatus } from '@prisma/client';
+
+export type Product = Omit<PrismaProduct, 'createdAt' | 'updatedAt'> & {
+  category: Category;
   sizes: string[];
   colors: string[];
+  featured?: boolean;
 };
 
 export type CartItem = {
-  id: string; // combination of productId, size, color
+  id: string; // Prisma cart item ID
+  productId: string;
   product: Product;
   quantity: number;
-  size: string;
-  color: string;
 };
+
+export type WishlistItem = {
+  id: string; // Prisma wishlist item ID
+  productId: string;
+  product: Product;
+}
+
+export type Order = {
+  id: string;
+  totalAmount: number;
+  status: OrderStatus;
+  createdAt: string;
+  items: OrderItem[];
+};
+
+export type OrderItem = {
+  id: string;
+  quantity: number;
+  price: number;
+  product: Product;
+}
+
+export type UserProfile = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  role: string;
+  createdAt: string;
+}

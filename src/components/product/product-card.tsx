@@ -18,23 +18,23 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/product/${product.id}`} passHref>
       <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="h-full"
+        whileHover={{ y: -5 }}
+        transition={{ duration: 0.2 }}
+        className="h-full group"
       >
-        <Card className="h-full overflow-hidden border-none bg-transparent shadow-none transition-shadow duration-300 hover:shadow-lg">
-          <div className="relative aspect-[3/4] w-full">
+        <Card className="h-full overflow-hidden border-none bg-transparent shadow-none transition-shadow duration-300 group-hover:shadow-xl">
+          <div className="relative aspect-[3/4] w-full overflow-hidden">
             <Image
               src={product.images[0]}
               alt={product.name}
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               data-ai-hint={imageHint}
             />
           </div>
           <div className="p-2 text-center md:p-4">
-            <h3 className="text-sm font-medium md:text-base">{product.name}</h3>
+            <h3 className="text-sm font-medium md:text-base truncate">{product.name}</h3>
             <p className="mt-1 text-sm text-muted-foreground md:text-base">
               ${product.price.toFixed(2)}
             </p>

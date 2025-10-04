@@ -1,15 +1,36 @@
-import ProductGrid from '@/components/product/product-grid';
-import { getProducts } from '@/lib/data';
-import { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Men\'s Collection - NOVA',
-  description: 'Explore the latest fashion for men at NOVA.',
-};
+import ProductGrid from '@/components/product/product-grid';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Product } from '@/lib/types';
+import { useEffect, useState } from 'react';
 
 export default function MenPage() {
-  const allProducts = getProducts();
-  const menProducts = allProducts.filter(p => p.category === 'men');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // In a real app, the API would support filtering by category slug "men"
+        // For now, we fetch all and filter client-side
+        const res = await fetch('/api/categories');
+        const categories = await res.json();
+        const menCategory = categories.find((c: any) => c.name.toLowerCase() === 'men');
+
+        if (menCategory) {
+          const productRes = await fetch(`/api/products?categoryId=${menCategory.id}`);
+          const menProducts = await productRes.json();
+          setProducts(menProducts);
+        }
+      } catch (error) {
+        console.error("Failed to fetch men's products", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   return (
     <div className="container py-12 md:py-24">
@@ -17,7 +38,19 @@ export default function MenPage() {
         <h1 className="text-4xl font-bold">Men's Collection</h1>
         <p className="mt-2 text-muted-foreground">Discover our curated selection of modern menswear.</p>
       </header>
-      <ProductGrid products={menProducts} />
+       {isLoading ? (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="aspect-[3/4] w-full" />
+              <Skeleton className="h-6 w-3/4 mx-auto" />
+              <Skeleton className="h-6 w-1/4 mx-auto" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <ProductGrid products={products} />
+      )}
     </div>
   );
 }
