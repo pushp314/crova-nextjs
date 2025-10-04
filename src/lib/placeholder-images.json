@@ -1,3 +1,82 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "imageUrl": "https://images.unsplash.com/photo-1627292441194-0280c19e74e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZmFzaGlvbiUyMG1vZGVsfGVufDB8fHx8MTc1OTU4ODU4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "A stylish woman in a modern cityscape, representing the NOVA brand.",
+      "imageHint": "fashion model"
+    },
+    {
+      "id": "prod_1_1",
+      "imageUrl": "https://images.unsplash.com/photo-1756376748082-e3184c057d9b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzaWxrJTIwYmxvdXNlfGVufDB8fHx8MTc1OTU2MDQzOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Front view of the embroidered silk blouse.",
+      "imageHint": "silk blouse"
+    },
+    {
+      "id": "prod_1_2",
+      "imageUrl": "https://images.unsplash.com/photo-1483985988355-763728e1935b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBmYXNoaW9ufGVufDB8fHx8MTc1OTUyNjA1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Side view of the embroidered silk blouse.",
+      "imageHint": "woman fashion"
+    },
+    {
+      "id": "prod_1_3",
+      "imageUrl": "https://images.unsplash.com/photo-1758354079539-b69446a3f0a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxlbWJyb2lkZXJ5JTIwZGV0YWlsfGVufDB8fHx8MTc1OTU0MTc3OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Close-up of the embroidery on the silk blouse.",
+      "imageHint": "embroidery detail"
+    },
+    {
+      "id": "prod_2_1",
+      "imageUrl": "https://images.unsplash.com/photo-1648879441041-830c67c3c517?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3b29sJTIwdHJvdXNlcnN8ZW58MHx8fHwxNzU5NTI3MDc5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Front view of the tailored wool trousers.",
+      "imageHint": "wool trousers"
+    },
+    {
+      "id": "prod_2_2",
+      "imageUrl": "https://images.unsplash.com/photo-1542327534-59a1fe8daf73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtYW4lMjBmYXNoaW9ufGVufDB8fHx8MTc1OTU0NjI5NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Back view of the tailored wool trousers.",
+      "imageHint": "man fashion"
+    },
+    {
+      "id": "prod_3_1",
+      "imageUrl": "https://images.unsplash.com/photo-1758328537049-aae2d077f1dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsZWF0aGVyJTIwdG90ZXxlbnwwfHx8fDE3NTk1MTEwNTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "The minimalist leather tote bag.",
+      "imageHint": "leather tote"
+    },
+    {
+      "id": "prod_4_1",
+      "imageUrl": "https://images.unsplash.com/photo-1745179294252-40178292e3b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb3R0b24lMjB0LXNoaXJ0fGVufDB8fHx8MTc1OTUxNzE0OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "The organic cotton t-shirt in white.",
+      "imageHint": "cotton t-shirt"
+    },
+    {
+      "id": "prod_5_1",
+      "imageUrl": "https://images.unsplash.com/photo-1721917594615-d69a446e9aca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3b21hbiUyMGZsb3JhbHxlbnwwfHx8fDE3NTk2MTEzOTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "A woman wearing the floral print midi dress.",
+      "imageHint": "woman floral"
+    },
+    {
+      "id": "prod_5_2",
+      "imageUrl": "https://images.unsplash.com/photo-1720982018744-0be735374ad9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmbG9yYWwlMjBmYWJyaWN8ZW58MHx8fHwxNzU5NjExMzkzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Close-up of the floral print fabric.",
+      "imageHint": "floral fabric"
+    },
+    {
+      "id": "prod_6_1",
+      "imageUrl": "https://images.unsplash.com/photo-1614697688184-66a55d41e298?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkZW5pbSUyMGphY2tldHxlbnwwfHx8fDE3NTk1ODg1ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "A man wearing the classic denim jacket.",
+      "imageHint": "denim jacket"
+    },
+    {
+      "id": "prod_7_1",
+      "imageUrl": "https://images.unsplash.com/photo-1667586680656-6b8e381cddb5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXNobWVyZSUyMHN3ZWF0ZXJ8ZW58MHx8fHwxNzU5NjExMzkzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "The cashmere knit sweater.",
+      "imageHint": "cashmere sweater"
+    },
+    {
+      "id": "prod_8_1",
+      "imageUrl": "https://images.unsplash.com/photo-1592467674817-23092d6d3f3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bGluZW4lMjBzaG9ydHN8ZW58MHx8fHwxNzU5NTg5NDMyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "The linen summer shorts.",
+      "imageHint": "linen shorts"
+    }
+  ]
 }
