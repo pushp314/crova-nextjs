@@ -14,6 +14,7 @@ import { useWishlist } from '@/contexts/wishlist-context';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import ProductReviews from './product-reviews';
 
 type ProductDetailClientProps = {
   product: Product;
@@ -23,7 +24,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const { addToCart, isLoading: isCartLoading } = useCart();
-  const { wishlistItems, addToWishlist, removeFromWishlist, isWishlisted, isLoading: isWishlistLoading } = useWishlist();
+  const { addToWishlist, removeFromWishlist, isWishlisted, isLoading: isWishlistLoading } = useWishlist();
 
   const isProductWishlisted = isWishlisted(product.id);
 
@@ -142,6 +143,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             </AccordionItem>
           </Accordion>
         </div>
+      </div>
+      <div className="mt-16">
+        <ProductReviews product={product} />
       </div>
     </div>
   );

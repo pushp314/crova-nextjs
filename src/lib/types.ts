@@ -1,10 +1,12 @@
-import type { Product as PrismaProduct, Category, Order as PrismaOrder, OrderStatus, OrderItem as PrismaOrderItem, PaymentStatus, User as PrismaUser } from '@prisma/client';
+import type { Product as PrismaProduct, Category, Order as PrismaOrder, OrderStatus, OrderItem as PrismaOrderItem, PaymentStatus, User as PrismaUser, Review as PrismaReview, Rating as PrismaRating } from '@prisma/client';
 
 export type Product = Omit<PrismaProduct, 'createdAt' | 'updatedAt'> & {
   category: Category;
   sizes: string[];
   colors: string[];
   featured?: boolean;
+  reviews?: Review[];
+  averageRating?: number;
 };
 
 export type CartItem = {
@@ -37,3 +39,8 @@ export type UserProfile = {
   role: string;
   createdAt: string;
 }
+
+export type Review = PrismaReview & {
+  user: Pick<PrismaUser, 'id' | 'name' | 'image'>;
+  rating: Rating | null;
+};

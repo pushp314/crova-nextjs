@@ -15,6 +15,7 @@ import type { Order, UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { getOrderStatusVariant } from '@/lib/utils';
+import { EditProfileDialog } from '@/components/profile/edit-profile-dialog';
 
 
 export default function ProfilePage() {
@@ -82,19 +83,26 @@ export default function ProfilePage() {
     return null;
   }
   
-  const user = profile;
-  const userInitial = user?.name?.charAt(0).toUpperCase() || '?';
+  if (!profile) {
+      return (
+          <div className="container py-12 text-center">
+              <p>Could not load profile. Please try again later.</p>
+          </div>
+      )
+  }
+
+  const userInitial = profile?.name?.charAt(0).toUpperCase() || '?';
 
   return (
     <div className="container py-12 md:py-24">
       <header className="mb-12 flex items-center gap-4">
         <Avatar className="h-20 w-20">
-          <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
+          <AvatarImage src={profile?.image || ''} alt={profile?.name || ''} />
           <AvatarFallback>{userInitial}</AvatarFallback>
         </Avatar>
         <div>
           <h1 className="text-4xl font-bold tracking-tight">My Account</h1>
-          <p className="mt-1 text-muted-foreground">Welcome back, {user?.name}!</p>
+          <p className="mt-1 text-muted-foreground">Welcome back, {profile?.name}!</p>
         </div>
       </header>
 
@@ -132,27 +140,31 @@ export default function ProfilePage() {
         <main className="md:col-span-3">
           <TabsContent value="account">
             <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Update your personal details here.</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Profile Information</CardTitle>
+                    <CardDescription>Update your personal details here.</CardDescription>
+                </div>
+                 <EditProfileDialog user={profile} onUpdate={setProfile}>
+                    <Button variant="outline">
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Profile
+                    </Button>
+                </EditProfileDialog>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Name</p>
-                  <p className="text-muted-foreground">{user?.name}</p>
+                  <p className="text-muted-foreground">{profile?.name}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Email Address</p>
-                  <p className="text-muted-foreground">{user?.email}</p>
+                  <p className="text-muted-foreground">{profile?.email}</p>
                 </div>
                   <div className="space-y-1">
                   <p className="text-sm font-medium">Role</p>
-                  <p className="text-muted-foreground capitalize">{user?.role?.toLowerCase()}</p>
+                  <p className="text-muted-foreground capitalize">{profile?.role?.toLowerCase()}</p>
                 </div>
-                <Button className="mt-4" disabled>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Profile (Soon)
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -186,7 +198,7 @@ export default function ProfilePage() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-muted-foreground">You haven't placed any orders yet.</p>
+                  <p className="text-center py-8 text-muted-foreground">You haven't placed any orders yet.</p>
                 )}
               </CardContent>
             </Card>

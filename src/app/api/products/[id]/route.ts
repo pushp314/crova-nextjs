@@ -19,14 +19,39 @@ export async function GET(req: Request, { params }: RouteParams) {
       where: { id },
       include: {
         category: true,
+        reviews: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            rating: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
       },
     });
 
     if (!product) {
       return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
     }
+    
+    // Calculate average rating
+    const ratings = await prisma.rating.findMany({
+        where: { productId: id }
+    });
+    
+    const averageRating = ratings.length > 0 
+        ? ratings.reduce((sum, r) => sum + r.value, 0) / ratings.length
+        : 0;
+        
 
-    return NextResponse.json(product);
+    return NextResponse.json({ ...product, averageRating });
   } catch (error) {
     console.error(`GET /api/products/${params.id} Error:`, error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
