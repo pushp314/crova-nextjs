@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { UserRole } from '@prisma/client';
+import { UserRole, PaymentStatus } from '@prisma/client';
 
 export async function GET(req: Request) {
   try {
@@ -13,23 +13,42 @@ export async function GET(req: Request) {
     const totalUsers = await prisma.user.count();
     const totalOrders = await prisma.order.count();
 
-    const totalSalesData = await prisma.order.aggregate({
+    const revenueData = await prisma.order.aggregate({
       _sum: {
         totalAmount: true,
       },
       where: {
-        status: {
-          not: 'CANCELLED',
-        },
+        paymentStatus: PaymentStatus.PAID,
       },
     });
+    const totalRevenue = revenueData._sum.totalAmount || 0;
     
-    const totalSales = totalSalesData._sum.totalAmount || 0;
+    const pendingPayments = await prisma.order.count({
+        where: {
+            paymentStatus: PaymentStatus.PENDING,
+        }
+    });
+
+    const codOrders = await prisma.order.count({
+        where: {
+            paymentMethod: 'cod',
+        }
+    });
+
+    const onlineOrders = await prisma.order.count({
+        where: {
+            paymentMethod: 'razorpay',
+        }
+    });
+
 
     return NextResponse.json({
       totalUsers,
       totalOrders,
-      totalSales,
+      totalRevenue,
+      pendingPayments,
+      codOrders,
+      onlineOrders,
     });
   } catch (error) {
     console.error('GET /api/admin/stats Error:', error);
