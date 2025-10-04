@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
-import { Heart, Loader2 } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useCart } from '@/contexts/cart-context';
-import { getSummary } from '@/app/actions';
 import { Card } from '../ui/card';
 
 type ProductDetailClientProps = {
@@ -20,21 +19,12 @@ type ProductDetailClientProps = {
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const [summary, setSummary] = useState('');
-  const [isPending, startTransition] = useTransition();
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
     addToCart(product, selectedSize, selectedColor);
   };
   
-  const handleSummarize = () => {
-    startTransition(async () => {
-      const result = await getSummary(product.description);
-      setSummary(result);
-    });
-  };
-
   return (
     <div className="container py-12 md:py-16">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
@@ -119,22 +109,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <AccordionTrigger>Product Description</AccordionTrigger>
               <AccordionContent className="text-base leading-relaxed">
                 {product.description}
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="summary">
-              <AccordionTrigger>AI Summary</AccordionTrigger>
-              <AccordionContent className="space-y-4 text-base leading-relaxed">
-                {summary ? (
-                  <p>{summary}</p>
-                ) : (
-                  <div className="flex flex-col items-start gap-4">
-                    <p className="text-sm text-muted-foreground">Click the button to generate a quick summary of the product.</p>
-                     <Button onClick={handleSummarize} disabled={isPending}>
-                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        ✨ Generate with AI
-                    </Button>
-                  </div>
-                )}
               </AccordionContent>
             </AccordionItem>
           </Accordion>
