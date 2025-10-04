@@ -165,19 +165,23 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent>
                 {orders.length > 0 ? (
-                  <ul className="space-y-6">
+                  <ul className="space-y-4">
                     {orders.map(order => (
-                      <li key={order.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-md border p-4">
-                        <div className="space-y-1">
-                          <p className="font-semibold">Order #{order.id.substring(0,8)}...</p>
-                          <p className="text-sm text-muted-foreground">Date: {format(new Date(order.createdAt), 'PPP')}</p>
-                        </div>
-                        <div className="flex w-full sm:w-auto items-center justify-between gap-4">
-                           <p className="font-semibold">${order.totalAmount.toFixed(2)}</p>
-                           <Badge variant={getOrderStatusVariant(order.status)} className="capitalize">
-                             {order.status.toLowerCase()}
-                           </Badge>
-                        </div>
+                       <li key={order.id}>
+                        <Link href={`/orders/${order.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                              <div className="space-y-1">
+                                <p className="font-semibold">Order #{order.id.substring(0,8)}...</p>
+                                <p className="text-sm text-muted-foreground">Date: {format(new Date(order.createdAt), 'PPP')}</p>
+                              </div>
+                              <div className="flex w-full sm:w-auto items-center justify-between gap-4">
+                                <p className="font-semibold">${order.totalAmount.toFixed(2)}</p>
+                                <Badge variant={getOrderStatusVariant(order.status)} className="capitalize">
+                                  {order.status.toLowerCase()}
+                                </Badge>
+                              </div>
+                           </div>
+                        </Link>
                       </li>
                     ))}
                   </ul>
