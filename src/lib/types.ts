@@ -1,4 +1,4 @@
-import type { Product as PrismaProduct, Category, OrderStatus } from '@prisma/client';
+import type { Product as PrismaProduct, Category, Order as PrismaOrder, OrderStatus, OrderItem as PrismaOrderItem, PaymentStatus, User as PrismaUser } from '@prisma/client';
 
 export type Product = Omit<PrismaProduct, 'createdAt' | 'updatedAt'> & {
   category: Category;
@@ -20,18 +20,12 @@ export type WishlistItem = {
   product: Product;
 }
 
-export type Order = {
-  id: string;
-  totalAmount: number;
-  status: OrderStatus;
-  createdAt: string;
+export type Order = PrismaOrder & {
   items: OrderItem[];
+  user?: Partial<PrismaUser>;
 };
 
-export type OrderItem = {
-  id: string;
-  quantity: number;
-  price: number;
+export type OrderItem = PrismaOrderItem & {
   product: Product;
 }
 
