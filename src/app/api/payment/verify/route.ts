@@ -1,98 +1,10 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import crypto from 'crypto';
-import { OrderStatus, PaymentStatus } from '@prisma/client';
 
-const razorpayWebhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET!;
-
+// This endpoint is deprecated and functionality has been moved to /api/payment/webhook
+// This file can be safely removed.
 export async function POST(req: Request) {
-  const text = await req.text();
-  const signature = req.headers.get('x-razorpay-signature');
-
-  if (!signature) {
-    return NextResponse.json({ message: 'Signature missing' }, { status: 400 });
-  }
-
-  const generated_signature = crypto
-    .createHmac('sha256', razorpayWebhookSecret)
-    .update(text)
-    .digest('hex');
-
-  if (generated_signature !== signature) {
-    return NextResponse.json({ message: 'Invalid signature' }, { status: 400 });
-  }
-
-  const body = JSON.parse(text);
-  const event = body.event;
-  
-  try {
-    if (event === 'payment.captured') {
-      const payment = body.payload.payment.entity;
-      const razorpayOrderId = payment.order_id;
-      
-      const order = await prisma.order.findFirst({
-        where: { paymentId: razorpayOrderId },
-        include: { items: true },
-      });
-
-      if (order && order.paymentStatus !== PaymentStatus.PAID) {
-         // Use a transaction to ensure atomicity
-        await prisma.$transaction(async (tx) => {
-            // 1. Update order status to PAID
-            await tx.order.update({
-              where: { id: order.id },
-              data: {
-                paymentStatus: PaymentStatus.PAID,
-                status: OrderStatus.PROCESSING, // Update order status
-                paymentId: payment.id, // Replace order_id with actual payment_id
-              },
-            });
-
-            // 2. Decrement stock
-            for (const item of order.items) {
-                await tx.product.update({
-                    where: { id: item.productId },
-                    data: { stock: { decrement: item.quantity } },
-                });
-            }
-
-            // 3. Clear the user's cart
-            const userCart = await tx.cart.findUnique({
-                where: { userId: order.userId }
-            });
-
-            if (userCart) {
-                await tx.cartItem.deleteMany({
-                    where: { cartId: userCart.id }
-                });
-            }
-        });
-      }
-    } else if (event === 'payment.failed') {
-        const payment = body.payload.payment.entity;
-        const razorpayOrderId = payment.order_id;
-        
-        // Find the order and update its status to FAILED.
-        // Also, we need to revert the stock if it was held.
-        // In our current flow, stock is only decremented on success, so no need to revert.
-        const order = await prisma.order.findFirst({
-          where: { paymentId: razorpayOrderId }
-        });
-
-        if (order) {
-            await prisma.order.update({
-              where: { id: order.id },
-              data: {
-                paymentStatus: PaymentStatus.FAILED,
-                status: OrderStatus.CANCELLED, // Or a new 'PAYMENT_FAILED' status
-              },
-            });
-        }
-    }
-
-    return NextResponse.json({ status: 'ok' });
-  } catch (error) {
-    console.error('Webhook processing error:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
-  }
+    return NextResponse.json(
+        { message: 'This endpoint is deprecated. Please use /api/payment/webhook' },
+        { status: 404 }
+    );
 }
