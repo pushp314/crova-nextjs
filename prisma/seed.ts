@@ -41,6 +41,7 @@ const productData: Prisma.ProductCreateInput[] = [
     category: { connect: { name: 'Women' } },
     sizes: ['One Size'],
     colors: ['Tan', 'Black'],
+    featured: false,
   },
   {
     name: 'Organic Cotton T-Shirt',
@@ -51,6 +52,7 @@ const productData: Prisma.ProductCreateInput[] = [
     category: { connect: { name: 'Men' } },
     sizes: ['S', 'M', 'L', 'XL'],
     colors: ['White', 'Black', 'Heather Grey'],
+    featured: false,
   },
   {
     name: 'Floral Print Midi Dress',
@@ -86,6 +88,7 @@ const productData: Prisma.ProductCreateInput[] = [
     category: { connect: { name: 'Women' } },
     sizes: ['XS', 'S', 'M', 'L'],
     colors: ['Oatmeal', 'Grey'],
+    featured: false,
   },
   {
     name: 'Linen Summer Shorts',
@@ -96,6 +99,7 @@ const productData: Prisma.ProductCreateInput[] = [
     category: { connect: { name: 'Men' } },
     sizes: ['S', 'M', 'L'],
     colors: ['Khaki', 'White', 'Navy'],
+    featured: false,
   },
 ];
 
