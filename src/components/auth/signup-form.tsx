@@ -60,7 +60,7 @@ export function SignupForm() {
       
       const responseData = await response.json();
       toast.success("Verification Email Sent!", {
-        description: responseData.message,
+        description: "Please check your email to verify your account before logging in.",
       });
 
       router.push('/login');

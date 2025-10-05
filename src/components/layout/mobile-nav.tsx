@@ -24,15 +24,21 @@ export default function MobileBottomNav() {
     setIsClient(true);
   }, []);
 
-  if (!isClient || !isMobile || pathname === '/search') {
+  if (!isClient || !isMobile) {
     return null;
   }
+  
+  // Also hide on search page for better UX
+  if (pathname === '/search') {
+      return null;
+  }
+
 
   return (
     <div className="fixed bottom-0 left-0 z-50 w-full border-t bg-background/95 backdrop-blur-sm md:hidden">
       <div className="grid h-16 grid-cols-4">
         {navItems.map((item) => {
-          const isActive = item.href === '/' ? pathname === item.href : pathname.startsWith(item.href);
+          const isActive = (item.href === '/' && pathname === '/') || (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.label}
