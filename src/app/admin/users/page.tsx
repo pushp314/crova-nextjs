@@ -31,9 +31,7 @@ export default function AdminUsersPage() {
     const fetchUsers = async () => {
       try {
         setIsLoading(true);
-        // The API route at /api/users now redirects to /api/admin/users,
-        // but we'll call the admin route directly for clarity.
-        const res = await fetch('/api/users'); 
+        const res = await fetch('/api/admin/users'); 
         if (res.ok) {
           const data = await res.json();
           setUsers(data.data);

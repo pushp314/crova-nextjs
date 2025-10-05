@@ -4,11 +4,7 @@ import Link from 'next/link';
 import { Home, Heart, User, SearchIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
+import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/', icon: Home, label: 'Home' },
@@ -19,8 +15,17 @@ const navItems = [
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const isMobile = useIsMobile();
-  
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
   if (!isMobile) {
     return null;
   }

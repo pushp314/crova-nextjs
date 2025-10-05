@@ -10,7 +10,7 @@ export async function middleware(req: NextRequest) {
   const isProtectedRoute = 
     pathname.startsWith('/profile') || 
     pathname.startsWith('/orders') ||
-    pathname.startsWith('/cart') ||
+    pathname.startsWith('/cart') || 
     pathname.startsWith('/checkout') ||
     pathname.startsWith('/wishlist');
 
@@ -48,6 +48,5 @@ export const config = {
     '/cart/:path*',
     '/checkout/:path*',
     '/wishlist/:path*',
-    '/search/:path*',
   ],
 };
