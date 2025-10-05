@@ -1,4 +1,5 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, UserRole } from '@prisma/client';
+import { hash } from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -106,26 +107,38 @@ const productData: Prisma.ProductCreateInput[] = [
 async function main() {
   console.log(`Start seeding ...`);
 
-  // Create categories if they don't exist
-  await prisma.category.upsert({
-    where: { name: 'Women' },
-    update: {},
-    create: { name: 'Women', description: 'Apparel and accessories for women' },
-  });
-  console.log('Upserted Women category');
-
-  await prisma.category.upsert({
-    where: { name: 'Men' },
-    update: {},
-    create: { name: 'Men', description: 'Apparel and accessories for men' },
-  });
-  console.log('Upserted Men category');
-  
-  // Clear existing products to avoid duplicates during re-seeding
+  // Clear existing data
+  await prisma.user.deleteMany({});
+  console.log('Deleted existing users');
+  await prisma.category.deleteMany({});
+  console.log('Deleted existing categories');
   await prisma.product.deleteMany({});
   console.log('Deleted existing products');
+  
+  // Create an admin user
+  const hashedPassword = await hash('admin123', 10);
+  await prisma.user.create({
+    data: {
+      name: 'Admin User',
+      email: 'admin@nova.com',
+      password: hashedPassword,
+      role: UserRole.ADMIN,
+      emailVerified: new Date(),
+    }
+  });
+  console.log('Created admin user');
 
-
+  // Create categories
+  await prisma.category.createMany({
+    data: [
+      { name: 'Women', description: 'Apparel and accessories for women' },
+      { name: 'Men', description: 'Apparel and accessories for men' },
+    ],
+    skipDuplicates: true,
+  });
+  console.log('Created Men and Women categories');
+  
+  // Create products
   for (const p of productData) {
     const product = await prisma.product.create({
       data: p,
