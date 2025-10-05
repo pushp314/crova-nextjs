@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -34,6 +35,14 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/profile';
+
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+        toast.success("Email verified!", {
+            description: "You can now log in to your account.",
+        });
+    }
+  }, [searchParams]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema),
@@ -73,11 +82,7 @@ export function LoginForm() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    // We don't wrap this in a try/catch because if the user closes the popup,
-    // signIn throws an error, but we don't want to show a toast in that case.
-    // The loading state will be reset when the page reloads after the callback.
     await signIn('google', { callbackUrl });
-    // If the user closes the popup, the promise will reject, so we should stop loading.
     setIsLoading(false);
   }
 
