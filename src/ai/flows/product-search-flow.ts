@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const ProductSearchInputSchema = z.object({
   query: z
@@ -58,7 +58,7 @@ const productSearchFlow = ai.defineFlow(
     inputSchema: ProductSearchInputSchema,
     outputSchema: ProductSearchOutputSchema,
   },
-  async input => {
+  async (input: ProductSearchInput) => {
     const {output} = await prompt(input);
     return output!;
   }
