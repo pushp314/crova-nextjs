@@ -11,7 +11,7 @@ export async function GET(req: Request) {
             return NextResponse.json({ message: 'Token is missing.' }, { status: 400 });
         }
 
-        const verificationToken = await prisma.verificationToken.findUnique({
+        const verificationToken = await prisma.verificationToken.findFirst({
             where: { token },
         });
 

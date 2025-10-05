@@ -1,3 +1,4 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -8,29 +9,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts     Account[]
-  sessions     Session[]
-  cart         Cart?
-  wishlist     Wishlist?
-  orders       Order[]
-  reviews      Review[]
-  ratings      Rating[]
-  addresses    Address[]
-  resetTokens  PasswordResetToken[]
-  verificationTokens VerificationToken[]
 }
 
 model Account {
@@ -60,13 +38,40 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id               String                 @id @default(cuid())
+  name             String?
+  email            String?                @unique
+  emailVerified    DateTime?
+  image            String?
+  password         String?
+  role             UserRole               @default(USER)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  accounts         Account[]
+  sessions         Session[]
+  orders           Order[]
+  reviews          Review[]
+  ratings          Rating[]
+  addresses        Address[]
+  cart             Cart?
+  wishlist         Wishlist?
+  resetTokens      PasswordResetToken[]
+  verificationTokens VerificationToken[]
+}
+
 model VerificationToken {
   id         String   @id @default(cuid())
   identifier String
   token      String   @unique
   expires    DateTime
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([identifier, token])
 }
@@ -76,15 +81,10 @@ model PasswordResetToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([identifier, token])
-}
-
-enum UserRole {
-  USER
-  ADMIN
 }
 
 model Category {
@@ -92,31 +92,27 @@ model Category {
   name        String    @unique
   description String?
   products    Product[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
 }
 
 model Product {
-  id          String    @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
-  description String    @db.Text
+  description String      @db.Text
   price       Float
   images      String[]
   stock       Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  category    Category    @relation(fields: [categoryId], references: [id])
+  categoryId  String
   sizes       String[]
   colors      String[]
-  featured    Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  reviews    Review[]
-  ratings    Rating[]
-  cartItems  CartItem[]
+  featured    Boolean     @default(false)
+  reviews     Review[]
+  ratings     Rating[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
   wishlistItems WishlistItem[]
-  orderItems OrderItem[]
 }
 
 model Review {
@@ -124,128 +120,23 @@ model Review {
   title     String
   comment   String   @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  product   Product  @relation(fields: [productId], references: [id])
   productId String
-  product   Product @relation(fields: [productId], references: [id])
-
-  userId String
-  user   User @relation(fields: [userId], references: [id])
-
-  rating Rating?
-
-  @@unique([productId, userId])
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  rating    Rating?
 }
 
 model Rating {
   id        String   @id @default(cuid())
   value     Int
   createdAt DateTime @default(now())
-
+  product   Product  @relation(fields: [productId], references: [id])
   productId String
-  product   Product @relation(fields: [productId], references: [id])
-
-  userId String
-  user   User @relation(fields: [userId], references: [id])
-
-  reviewId String @unique
-  review   Review @relation(fields: [reviewId], references: [id])
-
-  @@unique([productId, userId, reviewId])
-}
-
-model Cart {
-  id        String     @id @default(cuid())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  items     CartItem[]
-
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-}
-
-model CartItem {
-  id        String   @id @default(cuid())
-  quantity  Int
-  createdAt DateTime @default(now())
-
-  cartId    String
-  cart      Cart   @relation(fields: [cartId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-
-  @@unique([cartId, productId])
-}
-
-model Wishlist {
-  id        String         @id @default(cuid())
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  items     WishlistItem[]
-
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-}
-
-model WishlistItem {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  wishlistId String
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id])
-
-  @@unique([wishlistId, productId])
-}
-
-model Order {
-  id          String      @id @default(cuid())
-  totalAmount Float
-  status      OrderStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  paymentMethod   String?
-  paymentStatus   PaymentStatus @default(PENDING)
-  paymentId       String?       @unique
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  items OrderItem[]
-
-  shippingAddressId String?
-  shippingAddress   Address? @relation(fields: [shippingAddressId], references: [id])
-}
-
-model OrderItem {
-  id        String   @id @default(cuid())
-  quantity  Int
-  price     Float // Price at the time of purchase
-  createdAt DateTime @default(now())
-
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-}
-
-model Address {
-  id          String  @id @default(cuid())
-  street      String
-  city        String
-  state       String
-  postalCode  String
-  country     String
-  isDefault   Boolean @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  orders Order[]
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  review    Review   @relation(fields: [reviewId], references: [id])
+  reviewId  String   @unique
 }
 
 enum OrderStatus {
@@ -260,4 +151,86 @@ enum PaymentStatus {
   PENDING
   PAID
   FAILED
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  totalAmount       Float
+  status            OrderStatus   @default(PENDING)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  user              User          @relation(fields: [userId], references: [id])
+  userId            String
+  items             OrderItem[]
+  paymentMethod     String?       // e.g., 'razorpay', 'cod'
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentId         String?       // Store Razorpay order ID or transaction ID
+  shippingAddress   Address?      @relation(fields: [shippingAddressId], references: [id])
+  shippingAddressId String?
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Float // Price at the time of purchase
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+}
+
+model Address {
+  id          String  @id @default(cuid())
+  street      String
+  city        String
+  state       String
+  postalCode  String
+  country     String
+  isDefault   Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User    @relation(fields: [userId], references: [id])
+  userId      String
+  orders      Order[]
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String     @unique
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  createdAt DateTime @default(now())
+
+  @@unique([cartId, productId])
+}
+
+model Wishlist {
+  id        String         @id @default(cuid())
+  user      User           @relation(fields: [userId], references: [id])
+  userId    String         @unique
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id          String   @id @default(cuid())
+  wishlist    Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlistId  String
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  createdAt   DateTime @default(now())
+
+  @@unique([wishlistId, productId])
 }

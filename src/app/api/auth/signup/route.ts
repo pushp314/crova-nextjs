@@ -51,6 +51,7 @@ export async function POST(req: Request) {
         const verificationToken = await prisma.verificationToken.create({
             data: {
                 userId: existingUser.id,
+                identifier: email,
                 token: uuidv4(),
                 expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
             }
@@ -75,6 +76,7 @@ export async function POST(req: Request) {
     const verificationToken = await prisma.verificationToken.create({
         data: {
             userId: user.id,
+            identifier: email,
             token: uuidv4(),
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         }
