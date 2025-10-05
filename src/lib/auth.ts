@@ -80,7 +80,7 @@ export const authOptions: NextAuthOptions = {
 
       if (!dbUser) {
         if (user) {
-          token.id = user?.id;
+          token.id = user.id;
         }
         return token;
       }
@@ -93,13 +93,13 @@ export const authOptions: NextAuthOptions = {
         });
       }
 
-      return {
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        picture: dbUser.image,
-        role: dbUser.role,
-      };
+      token.id = dbUser.id;
+      token.name = dbUser.name;
+      token.email = dbUser.email!;
+      token.picture = dbUser.image;
+      token.role = dbUser.role;
+
+      return token;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
