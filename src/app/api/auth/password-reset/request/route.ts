@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     if (user) {
        const existingToken = await prisma.passwordResetToken.findFirst({
         where: {
-          identifier: email,
+          userId: user.id,
           expires: {
             gt: new Date(),
           },
@@ -58,13 +59,13 @@ export async function POST(req: Request) {
       } else {
         // Invalidate any old tokens for this user
         await prisma.passwordResetToken.deleteMany({
-          where: { identifier: email },
+          where: { userId: user.id },
         });
         
         // Create a new token
         const newPasswordResetToken = await prisma.passwordResetToken.create({
           data: {
-            identifier: email,
+            userId: user.id,
             token: uuidv4(),
             expires: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
           },

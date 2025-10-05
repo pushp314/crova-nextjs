@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: resetToken.identifier },
+      where: { id: resetToken.userId },
     });
 
     if (!user) {
