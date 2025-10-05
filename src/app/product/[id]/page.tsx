@@ -1,3 +1,4 @@
+
 'use client';
 
 import { notFound } from 'next/navigation';
@@ -32,7 +33,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   if (isLoading) {
     return (
-       <div className="container py-12 md:py-16">
+       <div className="py-12 md:py-16">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
             <Skeleton className="aspect-[3/4] w-full" />
             <div className="space-y-6">

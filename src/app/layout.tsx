@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import { CartProvider } from '@/contexts/cart-context';
@@ -10,6 +11,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import AuthProvider from '@/contexts/auth-provider';
 import Script from 'next/script';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: 'NOVA - Modern Fashion',
@@ -34,10 +36,12 @@ export default function RootLayout({
             <CartProvider>
               <div className="flex min-h-screen flex-col">
                 <Header />
-                <main className="flex-grow">{children}</main>
+                <main className="flex-grow container mt-16">{children}</main>
                 <Footer />
               </div>
-              <MobileBottomNav />
+              <Suspense fallback={null}>
+                <MobileBottomNav />
+              </Suspense>
               <Toaster />
               <SonnerToaster />
             </CartProvider>

@@ -55,7 +55,7 @@ export default function MenPage() {
   }, []);
 
   return (
-    <div className="container py-12 md:py-24">
+    <div className="py-12 md:py-24">
       <header className="mb-12 text-center">
         <h1 className="text-4xl font-bold">Men's Collection</h1>
         <p className="mt-2 text-muted-foreground">Discover our curated selection of modern menswear.</p>

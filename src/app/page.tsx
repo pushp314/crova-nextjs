@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -33,8 +34,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col">
-      <section className="relative h-[60vh] w-full text-white md:h-[80vh]">
+    <>
+      <section className="relative h-[60vh] w-full text-white md:h-[80vh] -mx-8">
         {heroImage && (
             <Image
               src={heroImage.imageUrl}
@@ -51,7 +52,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-4xl font-bold md:text-6xl lg:text-7xl"
+            className="text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl"
           >
             Effortless Elegance
           </motion.h1>
@@ -76,25 +77,23 @@ export default function Home() {
       </section>
 
       <section id="featured-products" className="py-12 md:py-24">
-        <div className="container">
-          <h2 className="mb-8 text-center text-3xl font-bold md:mb-12 md:text-4xl">
-            Featured Products
-          </h2>
-           {isLoading ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="aspect-[3/4] w-full" />
-                  <Skeleton className="h-6 w-3/4 mx-auto" />
-                  <Skeleton className="h-6 w-1/4 mx-auto" />
-                </div>
-              ))}
+        <h2 className="mb-8 text-center text-3xl font-bold md:mb-12 md:text-4xl">
+          Featured Products
+        </h2>
+        {isLoading ? (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+                <Skeleton className="aspect-[3/4] w-full" />
+                <Skeleton className="h-6 w-3/4 mx-auto" />
+                <Skeleton className="h-6 w-1/4 mx-auto" />
             </div>
-          ) : (
-            <ProductGrid products={featuredProducts} />
-          )}
+            ))}
         </div>
+        ) : (
+        <ProductGrid products={featuredProducts} />
+        )}
       </section>
-    </div>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -46,7 +47,7 @@ export default function OrderDetailPage() {
 
   if (isLoading) {
     return (
-        <div className="container py-12 md:py-24">
+        <div className="py-12 md:py-24">
             <div className="mb-8">
                 <Skeleton className="h-10 w-3/4" />
                 <Skeleton className="mt-2 h-5 w-1/2" />
@@ -69,7 +70,7 @@ export default function OrderDetailPage() {
   }
 
   return (
-    <div className="container py-12 md:py-24">
+    <div className="py-12 md:py-24">
        <div className="mb-8">
             <h1 className="text-3xl font-bold md:text-4xl">Order Details</h1>
             <p className="text-muted-foreground mt-2">

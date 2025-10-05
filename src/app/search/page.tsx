@@ -62,7 +62,7 @@ function SearchPageContent() {
   };
 
   return (
-    <div className="container py-12 md:py-16">
+    <div className="py-12 md:py-16">
        <header className="mb-8 md:mb-12">
         <h1 className="text-3xl font-bold md:text-4xl text-center">Search</h1>
         <form onSubmit={handleSearch} className="mt-6 max-w-lg mx-auto flex gap-2">
@@ -109,7 +109,7 @@ function SearchPageContent() {
 
 export default function SearchPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<LoadingSkeleton />}>
             <SearchPageContent />
         </Suspense>
     )

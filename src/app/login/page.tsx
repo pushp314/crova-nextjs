@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 function LoginPageContent() {
     return (
-        <div className="container flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center py-12">
+        <div className="flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center py-12">
             <Card className="mx-auto w-full max-w-sm">
                  <CardHeader>
                     <CardTitle className="text-center text-2xl font-bold">

@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
-import { Loader2, CreditCard, Truck, MapPin, PlusCircle } from 'lucide-react';
+import { Loader2, CreditCard, Truck, PlusCircle } from 'lucide-react';
 import { useCart } from '@/contexts/cart-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -114,7 +115,6 @@ export default function CheckoutPage() {
             order_id: order_id,
             handler: function (response: any) {
                 toast.success('Payment Successful!');
-                // The webhook will handle order confirmation, stock reduction, and cart clearing.
                 router.push('/profile');
             },
             prefill: {
@@ -172,7 +172,7 @@ export default function CheckoutPage() {
 
   if (status === 'loading' || isCartLoading || isAddressLoading) {
     return (
-        <div className="container py-12 md:py-24">
+        <div className="py-12 md:py-24">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div className="space-y-6">
                     <Skeleton className="h-10 w-1/2" />
@@ -189,7 +189,7 @@ export default function CheckoutPage() {
 
   return (
     <>
-    <div className="container py-12 md:py-24">
+    <div className="py-12 md:py-24">
       <h1 className="mb-8 text-center text-3xl font-bold md:text-4xl">
         Checkout
       </h1>

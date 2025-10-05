@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
-import { User, ShoppingBag, Heart, LogOut, Loader2, Edit, MapPin } from 'lucide-react';
+import { User, ShoppingBag, Heart, LogOut, Edit, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -55,7 +56,7 @@ export default function ProfilePage() {
 
   if (status === 'loading' || (status === 'authenticated' && isDataLoading)) {
     return (
-      <div className="container py-12 md:py-24">
+      <div className="py-12 md:py-24">
         <header className="mb-12 flex items-center gap-4">
             <Skeleton className="h-20 w-20 rounded-full" />
             <div>
@@ -86,7 +87,7 @@ export default function ProfilePage() {
   
   if (!profile) {
       return (
-          <div className="container py-12 text-center">
+          <div className="py-12 text-center">
               <p>Could not load profile. Please try again later.</p>
           </div>
       )
@@ -95,42 +96,44 @@ export default function ProfilePage() {
   const userInitial = profile?.name?.charAt(0).toUpperCase() || '?';
 
   return (
-    <div className="container py-12 md:py-24">
-      <header className="mb-12 flex items-center gap-4">
-        <Avatar className="h-20 w-20">
+    <div className="py-12 md:py-24">
+      <header className="mb-8 flex flex-col items-center gap-4 text-center md:mb-12 md:flex-row md:text-left">
+        <Avatar className="h-24 w-24 text-3xl">
           <AvatarImage src={profile?.image || ''} alt={profile?.name || ''} />
           <AvatarFallback>{userInitial}</AvatarFallback>
         </Avatar>
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">My Account</h1>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">My Account</h1>
           <p className="mt-1 text-muted-foreground">Welcome back, {profile?.name}!</p>
         </div>
       </header>
 
-      <Tabs defaultValue="account" className="grid grid-cols-1 gap-12 md:grid-cols-4">
+      <Tabs defaultValue="account" className="grid grid-cols-1 gap-8 md:gap-12 md:grid-cols-4">
         <aside className="md:col-span-1">
-          <TabsList className="h-auto flex-col items-stretch bg-transparent p-0">
+          <TabsList className="h-auto flex-col items-stretch bg-transparent p-0 md:flex">
+             <div className="flex overflow-x-auto md:flex-col md:overflow-x-visible">
               <TabsTrigger value="account" asChild>
-                <Button variant="ghost" className="justify-start gap-2">
+                <Button variant="ghost" className="justify-start gap-2 shrink-0">
                   <User className="h-4 w-4" /> Account Details
                 </Button>
               </TabsTrigger>
                <TabsTrigger value="addresses" asChild>
-                <Button variant="ghost" className="justify-start gap-2">
-                  <MapPin className="h-4 w-4" /> Shipping Addresses
+                <Button variant="ghost" className="justify-start gap-2 shrink-0">
+                  <MapPin className="h-4 w-4" /> Addresses
                 </Button>
               </TabsTrigger>
               <TabsTrigger value="orders" asChild>
-                 <Button variant="ghost" className="justify-start gap-2">
+                 <Button variant="ghost" className="justify-start gap-2 shrink-0">
                   <ShoppingBag className="h-4 w-4" /> Order History
                 </Button>
               </TabsTrigger>
-              <Button variant="ghost" asChild className="justify-start gap-2">
+              <Button variant="ghost" asChild className="justify-start gap-2 shrink-0">
                 <Link href="/wishlist">
                   <Heart className="h-4 w-4" />
                   Wishlist
                 </Link>
               </Button>
+              </div>
               <Separator className="my-2"/>
               <Button 
                 variant="ghost" 
