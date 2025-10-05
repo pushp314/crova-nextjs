@@ -5,6 +5,7 @@ import { Home, Heart, User, SearchIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useState, useEffect } from 'react';
 
 
 const navItems = [
@@ -17,8 +18,13 @@ const navItems = [
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const isMobile = useIsMobile();
+  const [isClient, setIsClient] = useState(false);
 
-  if (!isMobile || pathname === '/search') {
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient || !isMobile || pathname === '/search') {
     return null;
   }
 
@@ -26,7 +32,7 @@ export default function MobileBottomNav() {
     <div className="fixed bottom-0 left-0 z-50 w-full border-t bg-background/95 backdrop-blur-sm md:hidden">
       <div className="grid h-16 grid-cols-4">
         {navItems.map((item) => {
-          const isActive = (item.href === '/' && pathname === item.href) || (item.href !== '/' && pathname.startsWith(item.href));
+          const isActive = item.href === '/' ? pathname === item.href : pathname.startsWith(item.href);
           return (
             <Link
               key={item.label}

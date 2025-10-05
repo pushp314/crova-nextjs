@@ -58,8 +58,9 @@ export function SignupForm() {
         throw new Error(errorData.message || 'Something went wrong');
       }
       
-      toast.success("Account created!", {
-        description: "You can now log in with your new credentials.",
+      const responseData = await response.json();
+      toast.success("Verification Email Sent!", {
+        description: responseData.message,
       });
 
       router.push('/login');
