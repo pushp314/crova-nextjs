@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
@@ -66,8 +67,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       if (!res.ok) throw new Error('Failed to add item to cart.');
       
-      const updatedCart = await res.json();
-      setCartItems(updatedCart.items);
+      const { items } = await res.json();
+      setCartItems(items);
 
       toast.success("Added to cart", {
         description: `${product.name} has been added to your cart.`,
