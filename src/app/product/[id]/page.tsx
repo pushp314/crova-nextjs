@@ -8,13 +8,17 @@ import { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProductPage({ params }: { params: { id: string } }) {
+  const { id } = params; // Get id from params here
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check if id is available before fetching
+    if (!id) return;
+
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/products/${params.id}`);
+        const res = await fetch(`/api/products/${id}`);
         if (!res.ok) {
           notFound();
           return;
@@ -29,7 +33,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     };
 
     fetchProduct();
-  }, [params.id]);
+  }, [id]); // Depend on the extracted id
 
   if (isLoading) {
     return (
