@@ -1,3 +1,4 @@
+
 'use client';
 
 import ProductGrid from '@/components/product/product-grid';
@@ -5,6 +6,28 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Product } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { PackageSearch } from 'lucide-react';
+
+const LoadingSkeleton = () => (
+  <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div key={i} className="space-y-2">
+        <Skeleton className="aspect-[3/4] w-full" />
+        <Skeleton className="h-6 w-3/4 mx-auto" />
+        <Skeleton className="h-6 w-1/4 mx-auto" />
+      </div>
+    ))}
+  </div>
+);
+
+const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+        <PackageSearch className="w-24 h-24 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-bold">No Products Found</h2>
+        <p className="text-muted-foreground mt-2">
+            There are currently no products available in the women's collection.
+        </p>
+    </div>
+);
 
 export default function WomenPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -30,28 +53,6 @@ export default function WomenPage() {
     };
     fetchProducts();
   }, []);
-
-  const LoadingSkeleton = () => (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="space-y-2">
-          <Skeleton className="aspect-[3/4] w-full" />
-          <Skeleton className="h-6 w-3/4 mx-auto" />
-          <Skeleton className="h-6 w-1/4 mx-auto" />
-        </div>
-      ))}
-    </div>
-  );
-  
-  const EmptyState = () => (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-          <PackageSearch className="w-24 h-24 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold">No Products Found</h2>
-          <p className="text-muted-foreground mt-2">
-              There are currently no products available in the women's collection.
-          </p>
-      </div>
-  );
 
   return (
     <div className="container py-12 md:py-24">

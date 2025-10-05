@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import type { Product, Category } from "@/lib/types";
 import { productSchema } from "@/lib/validations";
 
@@ -46,6 +45,35 @@ interface ProductFormDialogProps {
   categories: Category[];
   onSave: (product: Product) => void;
 }
+
+const renderArrayField = (
+  label: string,
+  fields: any[],
+  remove: (index: number) => void,
+  append: any,
+  form: UseFormReturn<ProductFormValues>
+) => (
+  <div className="space-y-2">
+    <FormLabel>{label}</FormLabel>
+    {fields.map((field, index) => (
+      <div key={field.id} className="flex items-center gap-2">
+        <FormField
+          control={form.control}
+          name={`${label.toLowerCase() as "images" | "sizes" | "colors"}.${index}.value` as any}
+          render={({ field }) => (
+            <Input {...field} placeholder={`${label.slice(0, -1)} ${index + 1}`} />
+          )}
+        />
+        <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    ))}
+    <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
+      <PlusCircle className="mr-2 h-4 w-4" /> Add {label.slice(0, -1)}
+    </Button>
+  </div>
+);
 
 export function ProductFormDialog({
   isOpen,
@@ -148,29 +176,6 @@ export function ProductFormDialog({
     }
   };
 
-  const renderArrayField = (label: string, fields: any[], remove: (index: number) => void, append: any) => (
-    <div className="space-y-2">
-      <FormLabel>{label}</FormLabel>
-      {fields.map((field, index) => (
-        <div key={field.id} className="flex items-center gap-2">
-          <FormField
-            control={form.control}
-            name={`${label.toLowerCase()}.${index}.value` as any}
-            render={({ field }) => (
-                <Input {...field} placeholder={`${label.slice(0, -1)} ${index + 1}`} />
-            )}
-          />
-          <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ))}
-      <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
-        <PlusCircle className="mr-2 h-4 w-4" /> Add {label.slice(0, -1)}
-      </Button>
-    </div>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -251,9 +256,9 @@ export function ProductFormDialog({
               )}
             />
             
-            {renderArrayField("Images", imageFields, removeImage, () => appendImage({ value: "" }))}
-            {renderArrayField("Sizes", sizeFields, removeSize, () => appendSize({ value: "" }))}
-            {renderArrayField("Colors", colorFields, removeColor, () => appendColor({ value: "" }))}
+            {renderArrayField("Images", imageFields, removeImage, () => appendImage({ value: "" }), form)}
+            {renderArrayField("Sizes", sizeFields, removeSize, () => appendSize({ value: "" }), form)}
+            {renderArrayField("Colors", colorFields, removeColor, () => appendColor({ value: "" }), form)}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

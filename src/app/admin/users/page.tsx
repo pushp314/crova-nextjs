@@ -1,7 +1,6 @@
 
 'use client'
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import {
   Table,
   TableBody,
@@ -22,6 +21,29 @@ import type { UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+
+const LoadingSkeleton = () => (
+  <Card>
+   <CardHeader>
+     <Skeleton className="h-8 w-1/4" />
+     <Skeleton className="h-4 w-1/2" />
+   </CardHeader>
+   <CardContent>
+     <div className="space-y-4">
+       {Array.from({ length: 5 }).map((_, i) => (
+         <div key={i} className="flex items-center space-x-4">
+           <Skeleton className="h-10 w-10 rounded-full" />
+           <div className="w-full space-y-2">
+             <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+           </div>
+         </div>
+       ))}
+     </div>
+   </CardContent>
+ </Card>
+);
+
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -44,28 +66,6 @@ export default function AdminUsersPage() {
     };
     fetchUsers();
   }, []);
-
-   const LoadingSkeleton = () => (
-     <Card>
-      <CardHeader>
-        <Skeleton className="h-8 w-1/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center space-x-4">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="w-full space-y-2">
-                <Skeleton className="h-4 w-1/2" />
-                 <Skeleton className="h-4 w-1/3" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
 
   if (isLoading) {
       return <LoadingSkeleton />;

@@ -16,7 +16,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, MoreHorizontal, Trash2, Edit } from 'lucide-react';
@@ -43,6 +42,27 @@ import {
 import { toast } from 'sonner';
 import { ProductFormDialog } from '@/components/admin/product-form-dialog';
 
+const LoadingSkeleton = () => (
+  <Card>
+   <CardHeader>
+     <Skeleton className="h-8 w-1/4" />
+     <Skeleton className="h-4 w-1/2" />
+   </CardHeader>
+   <CardContent>
+     <div className="space-y-4">
+       {Array.from({ length: 5 }).map((_, i) => (
+         <div key={i} className="flex items-center space-x-4">
+           <Skeleton className="h-16 w-16" />
+           <div className="w-full space-y-2">
+             <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-1/4" />
+           </div>
+         </div>
+       ))}
+     </div>
+   </CardContent>
+ </Card>
+);
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -107,29 +127,6 @@ export default function AdminProductsPage() {
     }
     setIsDialogOpen(false);
   }
-
-  const LoadingSkeleton = () => (
-     <Card>
-      <CardHeader>
-        <Skeleton className="h-8 w-1/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center space-x-4">
-              <Skeleton className="h-16 w-16" />
-              <div className="w-full space-y-2">
-                <Skeleton className="h-6 w-3/4" />
-                 <Skeleton className="h-4 w-1/4" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
 
   if (isLoading) {
     return <LoadingSkeleton />;

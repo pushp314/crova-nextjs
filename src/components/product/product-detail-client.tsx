@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -13,7 +14,6 @@ import { useCart } from '@/contexts/cart-context';
 import { useWishlist } from '@/contexts/wishlist-context';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 import ProductReviews from './product-reviews';
 
 type ProductDetailClientProps = {

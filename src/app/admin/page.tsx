@@ -16,6 +16,23 @@ interface AdminStats {
   onlineOrders: number;
 }
 
+const LoadingSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+           <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-5 w-2/5" />
+                  <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                  <Skeleton className="h-8 w-3/5" />
+                  <Skeleton className="mt-2 h-4 w-4/5" />
+              </CardContent>
+          </Card>
+      ))}
+  </div>
+);
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,23 +54,6 @@ export default function AdminDashboardPage() {
     };
     fetchStats();
   }, []);
-
-  const LoadingSkeleton = () => (
-    <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-             <Card key={i}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <Skeleton className="h-5 w-2/5" />
-                    <Skeleton className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-8 w-3/5" />
-                    <Skeleton className="mt-2 h-4 w-4/5" />
-                </CardContent>
-            </Card>
-        ))}
-    </div>
-  );
 
   if (isLoading || !stats) {
     return <LoadingSkeleton />;

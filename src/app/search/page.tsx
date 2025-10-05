@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import ProductGrid from '@/components/product/product-grid';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,7 +9,18 @@ import type { Product } from '@/lib/types';
 import { SearchIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+
+const LoadingSkeleton = () => (
+  <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div key={i} className="space-y-2">
+        <Skeleton className="aspect-[3/4] w-full" />
+        <Skeleton className="h-6 w-3/4 mx-auto" />
+        <Skeleton className="h-6 w-1/4 mx-auto" />
+      </div>
+    ))}
+  </div>
+);
 
 function SearchPageContent() {
   const router = useRouter();
@@ -49,18 +60,6 @@ function SearchPageContent() {
     event.preventDefault();
     router.push(`/search?q=${encodeURIComponent(currentQuery)}`);
   };
-
-  const LoadingSkeleton = () => (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="space-y-2">
-          <Skeleton className="aspect-[3/4] w-full" />
-          <Skeleton className="h-6 w-3/4 mx-auto" />
-          <Skeleton className="h-6 w-1/4 mx-auto" />
-        </div>
-      ))}
-    </div>
-  );
 
   return (
     <div className="container py-12 md:py-16">

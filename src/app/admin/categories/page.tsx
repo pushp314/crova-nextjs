@@ -41,6 +41,26 @@ import {
 import { toast } from 'sonner';
 import { CategoryFormDialog } from '@/components/admin/category-form-dialog';
 
+const LoadingSkeleton = () => (
+  <Card>
+   <CardHeader>
+     <Skeleton className="h-8 w-1/4" />
+     <Skeleton className="h-4 w-1/2" />
+   </CardHeader>
+   <CardContent>
+     <div className="space-y-4">
+       {Array.from({ length: 3 }).map((_, i) => (
+         <div key={i} className="flex items-center space-x-4">
+           <div className="w-full space-y-2">
+             <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-4 w-full" />
+           </div>
+         </div>
+       ))}
+     </div>
+   </CardContent>
+ </Card>
+);
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -99,28 +119,6 @@ export default function AdminCategoriesPage() {
     }
     setIsDialogOpen(false);
   }
-
-  const LoadingSkeleton = () => (
-     <Card>
-      <CardHeader>
-        <Skeleton className="h-8 w-1/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center space-x-4">
-              <div className="w-full space-y-2">
-                <Skeleton className="h-6 w-1/3" />
-                 <Skeleton className="h-4 w-full" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
 
   if (isLoading) {
     return <LoadingSkeleton />;

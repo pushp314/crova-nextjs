@@ -34,8 +34,30 @@ import type { Order } from '@/lib/types';
 import { OrderStatus } from '@prisma/client';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, CheckCircle, Truck, Package, XCircle } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
+
+const LoadingSkeleton = () => (
+  <Card>
+    <CardHeader>
+      <Skeleton className="h-8 w-1/4" />
+      <Skeleton className="h-4 w-1/2" />
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-1/6" />
+            <Skeleton className="h-12 w-2/6" />
+            <Skeleton className="h-12 w-1/6" />
+            <Skeleton className="h-12 w-1/6" />
+            <Skeleton className="h-12 w-1/6" />
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+);
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -79,28 +101,6 @@ export default function AdminOrdersPage() {
   };
   
   const orderStatuses: OrderStatus[] = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-
-  const LoadingSkeleton = () => (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-8 w-1/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center space-x-4">
-              <Skeleton className="h-12 w-1/6" />
-              <Skeleton className="h-12 w-2/6" />
-              <Skeleton className="h-12 w-1/6" />
-              <Skeleton className="h-12 w-1/6" />
-              <Skeleton className="h-12 w-1/6" />
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
 
   if (isLoading) {
     return <LoadingSkeleton />;
