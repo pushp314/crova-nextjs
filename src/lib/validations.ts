@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 // ============================================================
@@ -15,6 +16,7 @@ export const productSchema = z.object({
   categoryId: z.string().min(1, 'Category is required.'),
   sizes: stringArray.min(1, 'At least one size is required.'),
   colors: stringArray.min(1, 'At least one color is required.'),
+  featured: z.boolean().default(false),
 });
 
 export const updateProductSchema = z.object({
@@ -26,6 +28,7 @@ export const updateProductSchema = z.object({
   categoryId: z.string().min(1, 'Category is required.').optional(),
   sizes: z.array(z.string().min(1)).min(1, 'At least one size is required.').optional(),
   colors: z.array(z.string().min(1)).min(1, 'At least one color is required.').optional(),
+  featured: z.boolean().optional(),
 });
 
 

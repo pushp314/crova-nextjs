@@ -1,20 +1,21 @@
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { UserRole } from '@prisma/client';
-import { updateProductSchema } from '@/lib/validations';
+import { productSchema, updateProductSchema } from '@/lib/validations';
 import { z } from 'zod';
 
-const postProductSchema = updateProductSchema.required({
-    name: true,
-    description: true,
-    price: true,
-    images: true,
-    stock: true,
-    categoryId: true,
-    sizes: true,
-    colors: true,
-});
+const postProductSchema = productSchema.omit({
+  images: true, 
+  sizes: true,
+  colors: true
+}).extend({
+  images: z.array(z.string().url()).min(1),
+  sizes: z.array(z.string()).min(1),
+  colors: z.array(z.string()).min(1),
+}).required();
+
 
 export async function GET(req: Request) {
   try {
@@ -64,7 +65,8 @@ export async function POST(req: Request) {
         stock: data.stock,
         categoryId: data.categoryId,
         sizes: data.sizes,
-        colors: data.colors
+        colors: data.colors,
+        featured: data.featured,
       },
       include: {
           category: true,
@@ -72,8 +74,10 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(product, { status: 201 });
-  } catch (error) {
+  } catch (error)
+   {
     if (error instanceof z.ZodError) {
+      console.log(error.errors);
       return NextResponse.json({ message: error.errors[0].message }, { status: 400 });
     }
     console.error('POST /api/products Error:', error);

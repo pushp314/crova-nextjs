@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import type { Product, Category } from "@/lib/types";
 import { productSchema } from "@/lib/validations";
+import { Switch } from "@/components/ui/switch";
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -96,6 +97,7 @@ export function ProductFormDialog({
       images: [],
       sizes: [],
       colors: [],
+      featured: false,
     },
   });
 
@@ -126,6 +128,7 @@ export function ProductFormDialog({
         images: product.images.map(img => ({ value: img })),
         sizes: product.sizes.map(size => ({ value: size })),
         colors: product.colors.map(color => ({ value: color })),
+        featured: product.featured,
       });
     } else if (isOpen && !product) {
       form.reset({
@@ -137,6 +140,7 @@ export function ProductFormDialog({
         images: [{value: ""}],
         sizes: [{value: ""}],
         colors: [{value: ""}],
+        featured: false,
       });
     }
   }, [isOpen, product, form]);
@@ -239,7 +243,7 @@ export function ProductFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
@@ -252,6 +256,24 @@ export function ProductFormDialog({
                     </SelectContent>
                   </Select>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="featured"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Featured</FormLabel>
+                    <FormMessage />
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
