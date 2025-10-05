@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       where: { email },
     });
 
-    if (user) {
+    if (user && user.email) { // Check if user and user.email exist
        const existingToken = await prisma.passwordResetToken.findFirst({
         where: {
           userId: user.id,
@@ -66,7 +66,8 @@ export async function POST(req: Request) {
         const newPasswordResetToken = await prisma.passwordResetToken.create({
           data: {
             userId: user.id,
-            identifier: user.email,
+            // The user.email is now guaranteed to be a string here.
+            identifier: user.email, 
             token: uuidv4(),
             expires: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
           },
