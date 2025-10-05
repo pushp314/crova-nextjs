@@ -22,8 +22,7 @@ export default function Home() {
         const res = await fetch('/api/products?featured=true&limit=4');
         if (!res.ok) throw new Error("Failed to fetch products");
         const products = await res.json();
-        // The API doesn't support featured=true, so we'll just take the first 4 for now
-        setFeaturedProducts(products.slice(0, 4));
+        setFeaturedProducts(products);
       } catch (error) {
         console.error(error);
       } finally {

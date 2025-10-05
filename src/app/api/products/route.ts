@@ -20,11 +20,15 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get('categoryId');
+    const limit = searchParams.get('limit');
+    const featured = searchParams.get('featured');
 
     const products = await prisma.product.findMany({
       where: {
         ...(categoryId ? { categoryId } : {}),
+        ...(featured === 'true' ? { featured: true } : {}),
       },
+      take: limit ? parseInt(limit) : undefined,
       include: {
         category: true,
       },
