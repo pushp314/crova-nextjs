@@ -56,11 +56,12 @@ export async function POST(req: Request) {
       if (existingToken) {
         tokenValue = existingToken.token;
       } else {
-        // Invalidate any old tokens
+        // Invalidate any old tokens for this user
         await prisma.passwordResetToken.deleteMany({
           where: { identifier: email },
         });
         
+        // Create a new token
         const newPasswordResetToken = await prisma.passwordResetToken.create({
           data: {
             identifier: email,
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
       await sendPasswordResetEmail(email, tokenValue);
     }
 
+    // Always return a success message to prevent user enumeration
     return NextResponse.json({ message: 'If an account with that email exists, a password reset link has been sent.' }, { status: 200 });
 
   } catch (error) {
