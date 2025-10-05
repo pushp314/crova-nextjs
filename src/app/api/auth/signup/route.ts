@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { hash } from 'bcrypt';
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
         // Resend verification email if user exists but is not verified
         const verificationToken = await prisma.verificationToken.create({
             data: {
-                identifier: email,
+                userId: existingUser.id,
                 token: uuidv4(),
                 expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
             }
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
     
     const verificationToken = await prisma.verificationToken.create({
         data: {
-            identifier: email,
+            userId: user.id,
             token: uuidv4(),
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         }

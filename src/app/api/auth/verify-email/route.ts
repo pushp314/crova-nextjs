@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
         }
 
         const user = await prisma.user.findUnique({
-            where: { email: verificationToken.identifier },
+            where: { id: verificationToken.userId },
         });
 
         if (!user) {
