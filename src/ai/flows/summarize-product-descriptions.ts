@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const SummarizeProductDescriptionInputSchema = z.object({
   description: z
@@ -46,7 +46,7 @@ const summarizeProductDescriptionFlow = ai.defineFlow(
     inputSchema: SummarizeProductDescriptionInputSchema,
     outputSchema: SummarizeProductDescriptionOutputSchema,
   },
-  async input => {
+  async (input: SummarizeProductDescriptionInput) => {
     const {output} = await prompt(input);
     return output!;
   }
