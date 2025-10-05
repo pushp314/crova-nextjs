@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import type { Product, Category } from "@/lib/types";
 import { productSchema } from "@/lib/validations";
 
@@ -120,9 +121,9 @@ export function ProductFormDialog({
     try {
       const payload = {
         ...data,
-        images: data.images.map(img => img.value),
-        sizes: data.sizes.map(s => s.value),
-        colors: data.colors.map(c => c.value),
+        images: data.images.map(img => img.value).filter(Boolean),
+        sizes: data.sizes.map(s => s.value).filter(Boolean),
+        colors: data.colors.map(c => c.value).filter(Boolean),
       }
 
       const res = await fetch(url, {
@@ -149,7 +150,7 @@ export function ProductFormDialog({
 
   const renderArrayField = (label: string, fields: any[], remove: (index: number) => void, append: any) => (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <FormLabel>{label}</FormLabel>
       {fields.map((field, index) => (
         <div key={field.id} className="flex items-center gap-2">
           <FormField
@@ -210,7 +211,7 @@ export function ProductFormDialog({
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Price</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} /></FormControl>
                     <FormMessage />
                     </FormItem>
                 )}
@@ -221,7 +222,7 @@ export function ProductFormDialog({
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Stock</FormLabel>
-                    <FormControl><Input type="number" {...field} /></FormControl>
+                    <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} /></FormControl>
                     <FormMessage />
                     </FormItem>
                 )}

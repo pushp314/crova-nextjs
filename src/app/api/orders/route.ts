@@ -62,7 +62,8 @@ export async function POST() {
 
     // 2. Calculate total amount and check stock
     let totalAmount = 0;
-    const orderItemsData = [];
+    // Explicitly type the array to resolve TypeScript error
+    const orderItemsData: { productId: string; quantity: number; price: number }[] = [];
 
     for (const item of cart.items) {
       if (item.product.stock < item.quantity) {

@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     }
 
     let totalAmount = 0;
-    const orderItemsData = [];
+    const orderItemsData: { productId: string; quantity: number; price: number }[] = [];
 
     // Use a transaction to check stock and create order atomically
     const newOrder = await prisma.$transaction(async (tx) => {

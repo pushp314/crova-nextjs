@@ -13,20 +13,23 @@ export async function GET(req: Request) {
 
     // Use AI to get structured search terms
     const searchTerms = await productSearch({ query });
+    
+    // Combine keywords into a single search string for 'contains'
+    const searchString = searchTerms.keywords.join(' ');
 
     const products = await prisma.product.findMany({
         where: {
             OR: [
                 {
                     name: {
-                        search: searchTerms.keywords.join(' | '),
+                        contains: searchString,
                         mode: 'insensitive'
                     },
                 },
                 {
                     description: {
-                        search: searchTerms.keywords.join(' | '),
-                         mode: 'insensitive'
+                        contains: searchString,
+                        mode: 'insensitive'
                     }
                 },
                 {
