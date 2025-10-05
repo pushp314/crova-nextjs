@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { Home, Heart, User, SearchIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const navItems = [
   { href: '/', icon: Home, label: 'Home' },
@@ -15,23 +16,9 @@ const navItems = [
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
 
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
-
-  if (!isMobile) {
-    return null;
-  }
-  
-  // Do not show the bottom nav on the search page for a better UI
-  if (pathname === '/search') {
+  if (!isMobile || pathname === '/search') {
     return null;
   }
 

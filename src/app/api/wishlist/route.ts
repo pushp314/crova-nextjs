@@ -23,12 +23,15 @@ export async function GET() {
             createdAt: 'asc',
           }
         },
+        _count: {
+          select: { items: true }
+        }
       },
     });
 
     if (!wishlist) {
       // If no wishlist, return an empty one
-       return NextResponse.json({ items: [], _count: { items: 0 } });
+       return NextResponse.json({ id: null, userId: session.user.id, items: [], _count: { items: 0 } });
     }
 
     return NextResponse.json(wishlist);
@@ -76,7 +79,7 @@ export async function POST(req: Request) {
 
       return tx.wishlist.findUnique({
         where: { id: wishlist.id },
-        include: { items: { include: { product: true } } },
+        include: { items: { include: { product: true } }, _count: { select: { items: true } } },
       });
     });
 

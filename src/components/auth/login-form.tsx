@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const formSchema = z.object({
@@ -32,6 +32,8 @@ type LoginFormValues = z.infer<typeof formSchema>;
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/profile';
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema),
@@ -58,7 +60,7 @@ export function LoginForm() {
         description: "Welcome back to NOVA.",
       });
       
-      router.push('/profile');
+      router.push(callbackUrl);
 
     } catch (error: any) {
       toast.error("Login failed.", {
@@ -71,15 +73,12 @@ export function LoginForm() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    try {
-      await signIn('google', { callbackUrl: '/profile' });
-    } catch (error) {
-       toast.error("Login with Google failed.", {
-        description: "An unexpected error occurred. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // We don't wrap this in a try/catch because if the user closes the popup,
+    // signIn throws an error, but we don't want to show a toast in that case.
+    // The loading state will be reset when the page reloads after the callback.
+    await signIn('google', { callbackUrl });
+    // If the user closes the popup, the promise will reject, so we should stop loading.
+    setIsLoading(false);
   }
 
   return (

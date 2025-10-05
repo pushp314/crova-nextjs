@@ -35,6 +35,11 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // If user is trying to access login/signup while already logged in
+  if (pathname === '/login' || pathname === '/signup') {
+    return NextResponse.redirect(new URL('/profile', req.url));
+  }
+
   // Allow access to protected routes for any authenticated user
   // and admin routes for admins
   return NextResponse.next();
@@ -48,5 +53,7 @@ export const config = {
     '/cart/:path*',
     '/checkout/:path*',
     '/wishlist/:path*',
+    '/login',
+    '/signup',
   ],
 };

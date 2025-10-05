@@ -42,15 +42,36 @@ export async function POST(req: Request) {
     });
 
     if (user) {
-      const passwordResetToken = await prisma.passwordResetToken.create({
-        data: {
+       const existingToken = await prisma.passwordResetToken.findFirst({
+        where: {
           identifier: email,
-          token: uuidv4(),
-          expires: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
+          expires: {
+            gt: new Date(),
+          },
         },
       });
       
-      await sendPasswordResetEmail(email, passwordResetToken.token);
+      let tokenValue: string;
+
+      if (existingToken) {
+        tokenValue = existingToken.token;
+      } else {
+        // Invalidate any old tokens
+        await prisma.passwordResetToken.deleteMany({
+          where: { identifier: email },
+        });
+        
+        const newPasswordResetToken = await prisma.passwordResetToken.create({
+          data: {
+            identifier: email,
+            token: uuidv4(),
+            expires: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 hour
+          },
+        });
+        tokenValue = newPasswordResetToken.token;
+      }
+      
+      await sendPasswordResetEmail(email, tokenValue);
     }
 
     return NextResponse.json({ message: 'If an account with that email exists, a password reset link has been sent.' }, { status: 200 });
