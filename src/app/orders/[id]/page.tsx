@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -16,7 +15,7 @@ import { getOrderStatusVariant, getPaymentStatusVariant } from '@/lib/utils';
 import Link from 'next/link';
 
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params; // Get id from params directly
+  const { id } = params; 
 
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
