@@ -35,7 +35,7 @@ export default function Home() {
 
   return (
     <>
-      <section className="relative h-[60vh] w-full text-white md:h-[80vh] -mx-8">
+      <section className="relative h-[60vh] w-full text-white md:h-[80vh] -mx-4 sm:-mx-8">
         {heroImage && (
             <Image
               src={heroImage.imageUrl}
@@ -46,8 +46,8 @@ export default function Home() {
               priority
             />
         )}
-        <div className="absolute inset-0 bg-black/30" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center p-4">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -60,7 +60,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-4 max-w-2xl text-lg md:text-xl"
+            className="mt-4 max-w-xl text-lg md:text-xl"
           >
             Discover our new collection of timeless pieces.
           </motion.p>
@@ -69,7 +69,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <Button asChild className="mt-8" size="lg" variant="secondary">
+            <Button asChild className="mt-8" size="lg">
               <Link href="#featured-products">Shop Now</Link>
             </Button>
           </motion.div>

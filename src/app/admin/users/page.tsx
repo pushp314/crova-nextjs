@@ -78,36 +78,38 @@ export default function AdminUsersPage() {
         <CardDescription>A list of all registered users.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Joined</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium flex items-center gap-3">
-                   <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.image || ''} alt={user.name || ''} />
-                        <AvatarFallback>{user.name?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
-                    </Avatar>
-                    {user.name}
-                </TableCell>
-                <TableCell>{user.email}</TableCell>
-                 <TableCell>
-                    <Badge variant={user.role === 'ADMIN' ? 'destructive' : 'outline'} className="capitalize">
-                        {user.role.toLowerCase()}
-                    </Badge>
-                </TableCell>
-                <TableCell>{format(new Date(user.createdAt), 'PPP')}</TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Joined</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                          <AvatarImage src={user.image || ''} alt={user.name || ''} />
+                          <AvatarFallback>{user.name?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
+                      </Avatar>
+                      {user.name}
+                  </TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                      <Badge variant={user.role === 'ADMIN' ? 'destructive' : 'outline'} className="capitalize">
+                          {user.role.toLowerCase()}
+                      </Badge>
+                  </TableCell>
+                  <TableCell>{format(new Date(user.createdAt), 'PPP')}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
          {users.length === 0 && !isLoading && (
             <p className="py-8 text-center text-muted-foreground">No users found.</p>
         )}

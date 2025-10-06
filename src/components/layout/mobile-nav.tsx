@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -28,8 +29,9 @@ export default function MobileBottomNav() {
     return null;
   }
   
-  // Also hide on search page for better UX
-  if (pathname === '/search') {
+  // Hide on admin pages, login, signup, checkout
+  const hiddenPaths = ['/admin', '/login', '/signup', '/checkout'];
+  if (hiddenPaths.some(path => pathname.startsWith(path))) {
       return null;
   }
 
@@ -45,8 +47,8 @@ export default function MobileBottomNav() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 text-xs font-medium",
-                isActive ? "text-foreground" : "text-muted-foreground",
-                "transition-colors hover:text-foreground"
+                isActive ? "text-primary" : "text-muted-foreground",
+                "transition-colors hover:text-primary"
               )}
             >
               <item.icon className="h-5 w-5" />

@@ -4,8 +4,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Package, ShoppingCart, Users, Tag } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Icons } from '@/components/icons';
 import AdminHeader from '@/components/admin/admin-header';
@@ -21,13 +19,13 @@ const navItems = [
 const DesktopSidebar = ({ pathname }: { pathname: string }) => (
   <div className="hidden border-r bg-muted/40 md:block">
     <div className="flex h-full max-h-screen flex-col gap-2">
-      <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+      <div className="flex h-16 items-center border-b px-4 lg:px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Icons.logo />
           <span className="">NOVA</span>
         </Link>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
           {navItems.map((item) => (
             <Link
@@ -61,7 +59,7 @@ export default function AdminLayout({
       <DesktopSidebar pathname={pathname} />
       <div className="flex flex-col">
         <AdminHeader navItems={navItems} />
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-8 bg-muted/40">
           {children}
         </main>
       </div>

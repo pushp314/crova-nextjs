@@ -41,7 +41,7 @@ export default function Header() {
         <Link
           key={link.href}
           href={link.href}
-          className="transition-colors hover:text-foreground/80"
+          className="transition-colors text-foreground/60 hover:text-foreground/80"
         >
           {link.label}
         </Link>
@@ -108,8 +108,8 @@ export default function Header() {
           </AnimatePresence>
         </div>
         
-        <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-4">
-          <div className="hidden md:flex flex-1 justify-center">
+        <div className="flex flex-1 items-center justify-end space-x-1 md:space-x-2">
+          <div className="hidden md:flex flex-1 justify-center relative">
              <AnimatePresence>
               {showSearch && (
                 <motion.div
@@ -117,18 +117,18 @@ export default function Header() {
                   animate={{ width: '100%', opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="relative w-full max-w-sm"
+                  className="w-full max-w-sm"
                 >
-                  <form onSubmit={handleSearch} className="flex w-full items-center">
+                  <form onSubmit={handleSearch} className="relative w-full">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="search"
                       name="search"
-                      placeholder="Search products..."
-                      className="h-9 pl-10 w-full rounded-full bg-muted border-transparent focus:border-primary focus:bg-background"
+                      placeholder="Search..."
+                      className="h-9 pl-10 w-full rounded-full bg-secondary border-none"
                       autoFocus
                       onBlur={() => setShowSearch(false)}
                     />
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   </form>
                 </motion.div>
               )}
@@ -163,7 +163,7 @@ export default function Header() {
             )}
           </AnimatePresence>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             {!showSearch && (
               <Button variant="ghost" size="icon" onClick={() => setShowSearch(true)}>
                 <Search className="h-5 w-5" />

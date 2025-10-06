@@ -113,70 +113,72 @@ export default function AdminOrdersPage() {
         <CardDescription>A list of all orders in the store.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Order Status</TableHead>
-              <TableHead>Payment</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium">
-                  #{order.id.substring(0, 8)}...
-                </TableCell>
-                <TableCell>{order.user?.name || 'N/A'}</TableCell>
-                <TableCell>{format(new Date(order.createdAt), 'PPP')}</TableCell>
-                <TableCell>
-                  <Badge variant={getOrderStatusVariant(order.status)}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                 <TableCell>
-                    <Badge variant={getPaymentStatusVariant(order.paymentStatus)} className="capitalize">
-                      {order.paymentMethod} - {order.paymentStatus.toLowerCase()}
-                    </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  ₹{order.totalAmount.toFixed(2)}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                          <DropdownMenuSubContent>
-                            {orderStatuses.map(status => (
-                               <DropdownMenuItem key={status} onSelect={() => handleStatusChange(order.id, status)}>
-                                  {status}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                      </DropdownMenuSub>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Order Status</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">
+                    #{order.id.substring(0, 8)}...
+                  </TableCell>
+                  <TableCell>{order.user?.name || 'N/A'}</TableCell>
+                  <TableCell>{format(new Date(order.createdAt), 'PPP')}</TableCell>
+                  <TableCell>
+                    <Badge variant={getOrderStatusVariant(order.status)}>
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                      <Badge variant={getPaymentStatusVariant(order.paymentStatus)} className="capitalize">
+                        {order.paymentMethod} - {order.paymentStatus.toLowerCase()}
+                      </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    ₹{order.totalAmount.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                              {orderStatuses.map(status => (
+                                <DropdownMenuItem key={status} onSelect={() => handleStatusChange(order.id, status)}>
+                                    {status}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
         {orders.length === 0 && !isLoading && (
           <p className="py-8 text-center text-muted-foreground">
             No orders found.
