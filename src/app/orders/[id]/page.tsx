@@ -16,7 +16,7 @@ import { getOrderStatusVariant, getPaymentStatusVariant } from '@/lib/utils';
 import Link from 'next/link';
 
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params; // Get id from params directly
+  const { id } = params; 
 
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,14 +108,14 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                                             <div className="flex flex-col">
                                                 <Link href={`/product/${item.productId}`} className="font-medium hover:underline">{item.product.name}</Link>
                                                 <span className="text-sm text-muted-foreground">
-                                                  ${item.price.toFixed(2)} each
+                                                  ₹{item.price.toFixed(2)} each
                                                 </span>
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
-                                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-medium">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-medium">₹{(item.price * item.quantity).toFixed(2)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -149,7 +149,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                     <Separator />
                     <div className="flex justify-between font-semibold text-lg">
                         <span>Total Amount</span>
-                        <span>${order.totalAmount.toFixed(2)}</span>
+                        <span>₹{order.totalAmount.toFixed(2)}</span>
                     </div>
                 </CardContent>
             </Card>

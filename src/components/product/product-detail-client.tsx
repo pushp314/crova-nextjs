@@ -68,7 +68,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
         <div className="space-y-6">
           <h1 className="text-3xl font-bold md:text-4xl">{product.name}</h1>
-          <p className="text-2xl font-semibold">${product.price.toFixed(2)}</p>
+          <p className="text-2xl font-semibold">₹{product.price.toFixed(2)}</p>
 
           {product.colors.length > 1 && (
             <div className="space-y-4">

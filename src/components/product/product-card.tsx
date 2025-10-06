@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -36,7 +37,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="p-2 text-center md:p-4">
             <h3 className="text-sm font-medium md:text-base truncate">{product.name}</h3>
             <p className="mt-1 text-sm text-muted-foreground md:text-base">
-              ${product.price.toFixed(2)}
+              ₹{product.price.toFixed(2)}
             </p>
           </div>
         </Card>

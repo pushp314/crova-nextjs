@@ -177,7 +177,7 @@ export default function AdminProductsPage() {
                     {product.category?.name || 'Uncategorized'}
                 </TableCell>
                 <TableCell>{product.stock}</TableCell>
-                <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+                <TableCell className="text-right">₹{product.price.toFixed(2)}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                       <DropdownMenuTrigger asChild>

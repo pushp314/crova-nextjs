@@ -200,7 +200,7 @@ export default function ProfilePage() {
                                 <p className="text-sm text-muted-foreground">Date: {format(new Date(order.createdAt), 'PPP')}</p>
                               </div>
                               <div className="flex w-full sm:w-auto items-center justify-between gap-4">
-                                <p className="font-semibold">${order.totalAmount.toFixed(2)}</p>
+                                <p className="font-semibold">₹{order.totalAmount.toFixed(2)}</p>
                                 <Badge variant={getOrderStatusVariant(order.status)} className="capitalize">
                                   {order.status.toLowerCase()}
                                 </Badge>

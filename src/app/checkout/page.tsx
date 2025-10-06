@@ -259,14 +259,14 @@ export default function CheckoutPage() {
                         {cartItems.map(item => (
                             <li key={item.id} className="flex justify-between">
                                 <span className="text-muted-foreground">{item.product.name} x {item.quantity}</span>
-                                <span>${(item.product.price * item.quantity).toFixed(2)}</span>
+                                <span>₹{(item.product.price * item.quantity).toFixed(2)}</span>
                             </li>
                         ))}
                     </ul>
                     <Separator />
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
-                        <span>${totalPrice.toFixed(2)}</span>
+                        <span>₹{totalPrice.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Shipping</span>
@@ -275,7 +275,7 @@ export default function CheckoutPage() {
                     <Separator />
                     <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
-                        <span>${totalPrice.toFixed(2)}</span>
+                        <span>₹{totalPrice.toFixed(2)}</span>
                     </div>
                 </CardContent>
                 <CardFooter>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -55,7 +56,7 @@ export default function CartView() {
                                 <div>
                                     <h3 className="font-semibold">{item.product.name}</h3>
                                     <p className="text-sm text-muted-foreground">
-                                        Price: ${item.product.price.toFixed(2)}
+                                        Price: ₹{item.product.price.toFixed(2)}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -81,7 +82,7 @@ export default function CartView() {
                                 </div>
                             </div>
                             <div className="flex flex-col items-end justify-between">
-                                <p className="font-semibold">${(item.product.price * item.quantity).toFixed(2)}</p>
+                                <p className="font-semibold">₹{(item.product.price * item.quantity).toFixed(2)}</p>
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -103,7 +104,7 @@ export default function CartView() {
                     <CardContent className="space-y-4">
                         <div className="flex justify-between">
                             <span>Subtotal</span>
-                            <span>${totalPrice.toFixed(2)}</span>
+                            <span>₹{totalPrice.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Shipping</span>
@@ -112,7 +113,7 @@ export default function CartView() {
                         <Separator />
                         <div className="flex justify-between font-semibold">
                             <span>Total</span>
-                            <span>${totalPrice.toFixed(2)}</span>
+                            <span>₹{totalPrice.toFixed(2)}</span>
                         </div>
                     </CardContent>
                     <CardFooter>

@@ -109,6 +109,32 @@ export default function Header() {
         </div>
         
         <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-4">
+          <div className="hidden md:flex flex-1 justify-center">
+             <AnimatePresence>
+              {showSearch && (
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: '100%', opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative w-full max-w-sm"
+                >
+                  <form onSubmit={handleSearch} className="flex w-full items-center">
+                    <Input
+                      type="search"
+                      name="search"
+                      placeholder="Search products..."
+                      className="h-9 pl-10 w-full rounded-full bg-muted border-transparent focus:border-primary focus:bg-background"
+                      autoFocus
+                      onBlur={() => setShowSearch(false)}
+                    />
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  </form>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <AnimatePresence>
             {showSearch && (
               <motion.div
@@ -116,7 +142,7 @@ export default function Header() {
                 animate={{ width: '100%', opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="absolute left-0 right-0 top-0 flex h-full items-center bg-background px-4 md:relative md:max-w-xs"
+                className="absolute left-0 right-0 top-0 flex h-full items-center bg-background px-4 md:hidden"
               >
                 <form onSubmit={handleSearch} className="flex w-full items-center gap-2">
                   <Input
