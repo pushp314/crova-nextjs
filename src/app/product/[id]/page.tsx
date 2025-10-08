@@ -2,12 +2,12 @@
 
 import { notFound } from 'next/navigation';
 import ProductDetailClient from '@/components/product/product-detail-client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function ProductPage({ params }: { params: { id: string } }) {
-  const { id } = params; 
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params); 
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

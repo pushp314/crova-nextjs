@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { format } from 'date-fns';
@@ -14,8 +14,8 @@ import type { Order } from '@/lib/types';
 import { getOrderStatusVariant, getPaymentStatusVariant } from '@/lib/utils';
 import Link from 'next/link';
 
-export default function OrderDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params; 
+export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params); 
 
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
