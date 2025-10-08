@@ -2,7 +2,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
-import { User, ShoppingBag, Heart, LogOut, Edit, MapPin } from 'lucide-react';
+import { User, ShoppingBag, Heart, LogOut, Edit, MapPin, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -169,8 +169,16 @@ export default function ProfilePage() {
                   <p className="text-muted-foreground capitalize">{profile?.role?.toLowerCase()}</p>
                 </div>
                 <Separator />
-                <Button variant="outline" asChild><Link href="/wishlist"><Heart className="mr-2 h-4 w-4" />Go to Wishlist</Link></Button>
-
+                <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" />Go to Wishlist</Link>
+                    </Button>
+                    {profile?.role === 'ADMIN' && (
+                        <Button variant="outline" asChild>
+                            <Link href="/admin"><Shield className="mr-2 h-4 w-4" />Admin Dashboard</Link>
+                        </Button>
+                    )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
