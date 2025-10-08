@@ -128,7 +128,7 @@ export default function AdminLayout({
                     Admin Dashboard
                  </div>
             </header>
-            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-8 bg-muted/40">
+            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-8 bg-muted/40 overflow-auto">
                 {children}
             </main>
         </div>
