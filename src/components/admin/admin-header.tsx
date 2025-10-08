@@ -29,8 +29,10 @@ export default function AdminHeader({ children }: { children: React.ReactNode })
           <span className="sr-only">Toggle navigation menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="flex flex-col">
-        {children}
+      <SheetContent side="left" className="flex flex-col p-0">
+        <div className="p-6">
+            {children}
+        </div>
       </SheetContent>
     </Sheet>
   );

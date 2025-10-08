@@ -83,7 +83,7 @@ export default function Header() {
     <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="flex items-center gap-6 md:gap-10">
-          <div className="md:hidden" />
+          <MobileNav />
           <Link href="/" className="hidden items-center space-x-2 md:flex">
             <Icons.logo />
             <span className="sr-only">NOVA</span>
@@ -164,20 +164,18 @@ export default function Header() {
           </AnimatePresence>
 
           <div className="flex items-center space-x-1">
-            {!showSearch && (
-              <Button variant="ghost" size="icon" onClick={() => setShowSearch(true)}>
+            <Button variant="ghost" size="icon" onClick={() => setShowSearch(true)} className={showSearch ? 'hidden' : 'flex'}>
                 <Search className="h-5 w-5" />
                 <span className="sr-only">Search</span>
-              </Button>
-            )}
+            </Button>
             <Link href="/profile" passHref>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className={showSearch ? 'hidden' : 'flex'}>
                 <User className="h-5 w-5" />
                 <span className="sr-only">Account</span>
               </Button>
             </Link>
             <Link href="/wishlist" passHref>
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className={`relative ${showSearch ? 'hidden' : 'flex'}`}>
                 <Heart className="h-5 w-5" />
                 {wishlistCount > 0 && (
                   <Badge variant="destructive" className="absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0 text-xs">
@@ -188,7 +186,7 @@ export default function Header() {
               </Button>
             </Link>
             <Link href="/cart" passHref>
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className={`relative ${showSearch ? 'hidden' : 'flex'}`}>
                 <ShoppingCart className="h-5 w-5" />
                 {cartCount > 0 && (
                   <Badge variant="destructive" className="absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0 text-xs">

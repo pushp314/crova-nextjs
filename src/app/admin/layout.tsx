@@ -58,7 +58,7 @@ const AdminNav = ({ isMobile = false }: { isMobile?: boolean }) => {
 
 
 const DesktopSidebar = () => (
-  <div className="hidden border-r bg-background md:block">
+  <div className="hidden border-r bg-muted/40 md:block">
     <div className="flex h-full max-h-screen flex-col gap-2">
       <div className="flex h-16 items-center border-b px-4 lg:px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -66,7 +66,7 @@ const DesktopSidebar = () => (
           <span className="">NOVA</span>
         </Link>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto py-2">
         <AdminNav />
       </div>
     </div>
@@ -94,4 +94,3 @@ export default function AdminLayout({
     </div>
   );
 }
-

@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,27 +28,27 @@ export default function Footer() {
             <div className="space-y-3">
               <h4 className="font-semibold">Shop</h4>
               <ul className="space-y-2">
-                <li><Link href="/women" className="hover:underline">Women</Link></li>
-                <li><Link href="/men" className="hover:underline">Men</Link></li>
-                <li><Link href="#" className="hover:underline">New Arrivals</Link></li>
+                <li><Link href="/women" className="text-muted-foreground hover:text-foreground">Women</Link></li>
+                <li><Link href="/men" className="text-muted-foreground hover:text-foreground">Men</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">New Arrivals</Link></li>
               </ul>
             </div>
             <div className="space-y-3">
               <h4 className="font-semibold">Company</h4>
               <ul className="space-y-2">
-                <li><Link href="#" className="hover:underline">About Us</Link></li>
-                <li><Link href="#" className="hover:underline">Careers</Link></li>
-                <li><Link href="#" className="hover:underline">Press</Link></li>
-                <li><Link href="#" className="hover:underline">Affiliates</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">About Us</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Press</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Affiliates</Link></li>
               </ul>
             </div>
             <div className="space-y-3">
               <h4 className="font-semibold">Support</h4>
               <ul className="space-y-2">
-                <li><Link href="#" className="hover:underline">Contact Us</Link></li>
-                <li><Link href="#" className="hover:underline">FAQ</Link></li>
-                <li><Link href="#" className="hover:underline">Shipping & Returns</Link></li>
-                <li><Link href="#" className="hover:underline">Track Order</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Contact Us</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">FAQ</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Shipping & Returns</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-foreground">Track Order</Link></li>
               </ul>
             </div>
           </div>

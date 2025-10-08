@@ -23,7 +23,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         transition={{ duration: 0.2 }}
         className="h-full group"
       >
-        <Card className="h-full overflow-hidden border-none bg-transparent shadow-none transition-shadow duration-300 group-hover:shadow-xl">
+        <Card className="h-full overflow-hidden border-none bg-transparent shadow-none transition-shadow duration-300 group-hover:shadow-xl rounded-lg">
           <div className="relative aspect-[3/4] w-full overflow-hidden">
             <Image
               src={product.images[0]}
