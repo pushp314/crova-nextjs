@@ -13,6 +13,17 @@ import { useRouter } from 'next/navigation';
 import { Input } from '../ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useSession, signOut } from 'next-auth/react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+
 
 const navLinks = [
   { href: '/women', label: 'Women' },
@@ -20,6 +31,7 @@ const navLinks = [
 ];
 
 export default function Header() {
+  const { data: session } = useSession();
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const [showSearch, setShowSearch] = useState(false);
@@ -94,7 +106,7 @@ export default function Header() {
                       type="search"
                       name="search"
                       placeholder="Search..."
-                      className="h-9 pl-10 w-full rounded-full bg-secondary border-none"
+                      className="h-9 pl-10 w-full"
                       autoFocus
                       onBlur={() => setShowSearch(false)}
                     />
@@ -132,19 +144,14 @@ export default function Header() {
             )}
           </AnimatePresence>
 
-          <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="icon" onClick={() => setShowSearch(true)} className={cn("flex", showSearch && 'hidden')}>
+          <div className={cn("flex items-center space-x-1", showSearch && "hidden")}>
+            <Button variant="ghost" size="icon" onClick={() => setShowSearch(true)}>
                 <Search className="h-5 w-5" />
                 <span className="sr-only">Search</span>
             </Button>
-            <Link href="/profile" passHref>
-              <Button variant="ghost" size="icon" className={cn("flex", showSearch && 'hidden')}>
-                <User className="h-5 w-5" />
-                <span className="sr-only">Account</span>
-              </Button>
-            </Link>
+            
             <Link href="/wishlist" passHref>
-              <Button variant="ghost" size="icon" className={cn("relative", "flex", showSearch && 'hidden')}>
+              <Button variant="ghost" size="icon" className="relative">
                 <Heart className="h-5 w-5" />
                 {wishlistCount > 0 && (
                   <Badge variant="destructive" className="absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0 text-xs">
@@ -155,7 +162,7 @@ export default function Header() {
               </Button>
             </Link>
             <Link href="/cart" passHref>
-              <Button variant="ghost" size="icon" className={cn("relative", "flex", showSearch && 'hidden')}>
+              <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
                 {cartCount > 0 && (
                   <Badge variant="destructive" className="absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0 text-xs">
@@ -165,6 +172,43 @@ export default function Header() {
                 <span className="sr-only">Cart</span>
               </Button>
             </Link>
+
+             {session?.user ? (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
+                                <AvatarFallback>{session.user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                            </Avatar>
+                            <span className="sr-only">User Menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                            <Link href="/profile">Profile</Link>
+                        </DropdownMenuItem>
+                        {session.user.role === 'ADMIN' && (
+                            <DropdownMenuItem asChild>
+                                <Link href="/admin">Admin Dashboard</Link>
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
+                            Logout
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : (
+                <Link href="/login" passHref>
+                    <Button variant="ghost" size="icon">
+                        <User className="h-5 w-5" />
+                        <span className="sr-only">Login</span>
+                    </Button>
+                </Link>
+            )}
           </div>
         </div>
       </div>
