@@ -29,10 +29,22 @@ import type { UserProfile } from "@/lib/types";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(50),
-  image: z.string().url("Please enter a valid URL.").or(z.literal("")),
 });
 
+const avatarFormSchema = z.object({
+  avatar: z
+    .custom<FileList>()
+    .refine((files) => files?.length > 0, "Avatar image is required.")
+    .refine((files) => files?.[0]?.size <= 1024 * 1024, `Max file size is 1MB.`)
+    .refine(
+      (files) => ["image/jpeg", "image/png", "image/gif"].includes(files?.[0]?.type),
+      "Only .jpg, .png, and .gif formats are supported."
+    ),
+});
+
+
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
+type AvatarFormValues = z.infer<typeof avatarFormSchema>;
 
 interface EditProfileDialogProps {
   user: UserProfile;
@@ -42,23 +54,25 @@ interface EditProfileDialogProps {
 
 export function EditProfileDialog({ user, onUpdate, children }: EditProfileDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isNameLoading, setIsNameLoading] = useState(false);
+  const [isAvatarLoading, setIsAvatarLoading] = useState(false);
 
-  const form = useForm<ProfileFormValues>({
+  const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      name: user.name || "",
-      image: user.image || "",
-    },
+    defaultValues: { name: user.name || "" },
   });
+  
+  const avatarForm = useForm<AvatarFormValues>();
+  const avatarFileRef = avatarForm.register("avatar");
 
-  const onSubmit = async (data: ProfileFormValues) => {
-    setIsLoading(true);
+
+  const onNameSubmit = async (data: ProfileFormValues) => {
+    setIsNameLoading(true);
     try {
       const res = await fetch("/api/users/me", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ name: data.name }),
       });
 
       if (!res.ok) {
@@ -68,14 +82,40 @@ export function EditProfileDialog({ user, onUpdate, children }: EditProfileDialo
 
       const updatedUser = await res.json();
       onUpdate(updatedUser);
-      toast.success("Profile updated successfully!");
-      setIsOpen(false);
+      toast.success("Name updated successfully!");
     } catch (error: any) {
       toast.error("Update Failed", { description: error.message });
     } finally {
-      setIsLoading(false);
+      setIsNameLoading(false);
     }
   };
+  
+  const onAvatarSubmit = async (data: AvatarFormValues) => {
+      setIsAvatarLoading(true);
+      const formData = new FormData();
+      formData.append("avatar", data.avatar[0]);
+
+      try {
+          const res = await fetch("/api/users/me/avatar", {
+              method: "POST",
+              body: formData,
+          });
+
+          if (!res.ok) {
+              const errorData = await res.json();
+              throw new Error(errorData.message || "Failed to upload avatar.");
+          }
+
+          const updatedUser = await res.json();
+          onUpdate(updatedUser);
+          toast.success("Avatar updated successfully!");
+          setIsOpen(false);
+      } catch (error: any) {
+           toast.error("Upload Failed", { description: error.message });
+      } finally {
+          setIsAvatarLoading(false);
+      }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -87,14 +127,37 @@ export function EditProfileDialog({ user, onUpdate, children }: EditProfileDialo
             Make changes to your profile here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+
+        <Form {...avatarForm}>
+            <form onSubmit={avatarForm.handleSubmit(onAvatarSubmit)} className="space-y-4 py-4 border-b">
+                 <FormField
+                    control={avatarForm.control}
+                    name="avatar"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Profile Picture</FormLabel>
+                            <FormControl>
+                                <Input type="file" {...avatarFileRef} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                <Button type="submit" disabled={isAvatarLoading} className="w-full">
+                    {isAvatarLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Upload New Picture
+                </Button>
+            </form>
+        </Form>
+        
+        <Form {...profileForm}>
+          <form onSubmit={profileForm.handleSubmit(onNameSubmit)} className="space-y-4 pt-4">
             <FormField
-              control={form.control}
+              control={profileForm.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Display Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Your Name" {...field} />
                   </FormControl>
@@ -102,23 +165,10 @@ export function EditProfileDialog({ user, onUpdate, children }: EditProfileDialo
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Profile Picture URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://example.com/your-image.png" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save changes
+              <Button type="submit" disabled={isNameLoading} className="w-full">
+                {isNameLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Name
               </Button>
             </DialogFooter>
           </form>

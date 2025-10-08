@@ -21,7 +21,7 @@ import AddressManager from '@/components/profile/address-manager';
 
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -52,6 +52,19 @@ export default function ProfilePage() {
     };
     fetchData();
   }, [status]);
+
+  const onProfileUpdate = async (updatedUser: UserProfile) => {
+    setProfile(updatedUser);
+    // Trigger session update to reflect changes in the header
+    await update({
+        ...session,
+        user: {
+            ...session?.user,
+            name: updatedUser.name,
+            image: updatedUser.image,
+        }
+    });
+  }
 
 
   if (status === 'loading' || (status === 'authenticated' && isDataLoading)) {
@@ -98,55 +111,34 @@ export default function ProfilePage() {
   return (
     <div className="py-12 md:py-24">
       <header className="mb-8 flex flex-col items-center gap-4 text-center md:mb-12 md:flex-row md:text-left">
-        <Avatar className="h-24 w-24 text-3xl">
-          <AvatarImage src={profile?.image || ''} alt={profile?.name || ''} />
-          <AvatarFallback>{userInitial}</AvatarFallback>
-        </Avatar>
+        <EditProfileDialog user={profile} onUpdate={onProfileUpdate}>
+            <button className="relative group">
+                <Avatar className="h-24 w-24 text-3xl">
+                <AvatarImage src={profile?.image || ''} alt={profile?.name || ''} />
+                <AvatarFallback>{userInitial}</AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                    <Edit className="h-8 w-8"/>
+                </div>
+            </button>
+        </EditProfileDialog>
+
         <div>
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">My Account</h1>
           <p className="mt-1 text-muted-foreground">Welcome back, {profile?.name}!</p>
         </div>
       </header>
 
-      <Tabs defaultValue="account" className="grid grid-cols-1 gap-8 md:gap-12 md:grid-cols-4">
-        <aside className="md:col-span-1">
-          <TabsList className="h-auto flex-col items-stretch bg-transparent p-0 md:flex">
-             <div className="flex overflow-x-auto md:flex-col md:overflow-x-visible">
-              <TabsTrigger value="account" asChild>
-                <Button variant="ghost" className="justify-start gap-2 shrink-0">
-                  <User className="h-4 w-4" /> Account Details
-                </Button>
-              </TabsTrigger>
-               <TabsTrigger value="addresses" asChild>
-                <Button variant="ghost" className="justify-start gap-2 shrink-0">
-                  <MapPin className="h-4 w-4" /> Addresses
-                </Button>
-              </TabsTrigger>
-              <TabsTrigger value="orders" asChild>
-                 <Button variant="ghost" className="justify-start gap-2 shrink-0">
-                  <ShoppingBag className="h-4 w-4" /> Order History
-                </Button>
-              </TabsTrigger>
-              <Button variant="ghost" asChild className="justify-start gap-2 shrink-0">
-                <Link href="/wishlist">
-                  <Heart className="h-4 w-4" />
-                  Wishlist
-                </Link>
-              </Button>
-              </div>
-              <Separator className="my-2"/>
-              <Button 
-                variant="ghost" 
-                className="justify-start gap-2 text-destructive hover:text-destructive"
-                onClick={() => signOut({ callbackUrl: '/' })}
-              >
-                <LogOut className="h-4 w-4" />
-                Log Out
-              </Button>
-          </TabsList>
-        </aside>
+      <Tabs defaultValue="account" className="w-full">
+        <div className="overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex mb-8">
+                <TabsTrigger value="account" className="gap-2"><User className="h-4 w-4" /> Account</TabsTrigger>
+                <TabsTrigger value="addresses" className="gap-2"><MapPin className="h-4 w-4" /> Addresses</TabsTrigger>
+                <TabsTrigger value="orders" className="gap-2"><ShoppingBag className="h-4 w-4" /> Orders</TabsTrigger>
+            </TabsList>
+        </div>
 
-        <main className="md:col-span-3">
+        <main>
           <TabsContent value="account">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
@@ -154,12 +146,14 @@ export default function ProfilePage() {
                     <CardTitle>Profile Information</CardTitle>
                     <CardDescription>Update your personal details here.</CardDescription>
                 </div>
-                 <EditProfileDialog user={profile} onUpdate={setProfile}>
-                    <Button variant="outline">
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Profile
-                    </Button>
-                </EditProfileDialog>
+                <Button 
+                    variant="ghost" 
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => signOut({ callbackUrl: '/' })}
+                >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log Out
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1">
@@ -174,6 +168,9 @@ export default function ProfilePage() {
                   <p className="text-sm font-medium">Role</p>
                   <p className="text-muted-foreground capitalize">{profile?.role?.toLowerCase()}</p>
                 </div>
+                <Separator />
+                <Button variant="outline" asChild><Link href="/wishlist"><Heart className="mr-2 h-4 w-4" />Go to Wishlist</Link></Button>
+
               </CardContent>
             </Card>
           </TabsContent>
