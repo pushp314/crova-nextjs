@@ -11,6 +11,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 import { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -35,7 +36,7 @@ export default function Home() {
 
   return (
     <>
-      <section className="relative h-[60vh] w-full text-white md:h-[80vh] -mx-4 sm:-mx-8">
+      <section className="relative h-[60vh] w-full text-white md:h-[80vh] -mx-4 sm:-mx-8 md:mx-0">
         {heroImage && (
             <Image
               src={heroImage.imageUrl}
@@ -52,7 +53,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl"
+            className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
           >
             Effortless Elegance
           </motion.h1>
@@ -73,6 +74,21 @@ export default function Home() {
               <Link href="#featured-products">Shop Now</Link>
             </Button>
           </motion.div>
+        </div>
+      </section>
+
+      <section className="py-8 md:hidden">
+        <div className="grid grid-cols-2 gap-4">
+          <Link href="/women" passHref>
+            <Card className="flex items-center justify-center p-6 aspect-video text-center font-semibold text-lg transition-all hover:bg-muted">
+              Shop Women
+            </Card>
+          </Link>
+          <Link href="/men" passHref>
+            <Card className="flex items-center justify-center p-6 aspect-video text-center font-semibold text-lg transition-all hover:bg-muted">
+              Shop Men
+            </Card>
+          </Link>
         </div>
       </section>
 

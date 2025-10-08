@@ -58,7 +58,7 @@ export default function Header() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left">
-        <div className="flex flex-col gap-6 p-6">
+         <div className="flex flex-col gap-6 p-6">
           <Link href="/" className="mb-4">
             <Icons.logo />
             <span className="sr-only">NOVA</span>
@@ -83,7 +83,7 @@ export default function Header() {
     <header className="fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="flex items-center gap-6 md:gap-10">
-          <MobileNav />
+          <div className="md:hidden" />
           <Link href="/" className="hidden items-center space-x-2 md:flex">
             <Icons.logo />
             <span className="sr-only">NOVA</span>
