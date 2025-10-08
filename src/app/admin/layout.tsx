@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Package, ShoppingCart, Users, Tag, PanelLeft, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Icons } from '@/components/icons';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -120,6 +120,9 @@ export default function AdminLayout({
                         </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="w-full max-w-xs p-0">
+                       <SheetHeader>
+                          <SheetTitle className="sr-only">Admin Menu</SheetTitle>
+                       </SheetHeader>
                        <Sidebar />
                     </SheetContent>
                 </Sheet>
