@@ -46,13 +46,25 @@ export default function TopTickerBanner() {
 
   const firstBanner = banners[0];
   const bannerContent = (
-    <>
+    <div className="flex items-center">
       {firstBanner.imageUrl && (
-        <Image src={firstBanner.imageUrl} alt={firstBanner.title} width={20} height={20} className="inline-block mr-2" />
+        <Image src={firstBanner.imageUrl} alt="" width={20} height={20} className="inline-block mr-2 rounded-sm" />
       )}
       <span className="font-semibold">{firstBanner.title}</span>
       {firstBanner.text && <span className="hidden sm:inline-block ml-2">{firstBanner.text}</span>}
-    </>
+    </div>
+  );
+
+  const TickerItem = () => (
+     <div className="flex-shrink-0 whitespace-nowrap px-8 py-2">
+        {firstBanner.linkUrl ? (
+          <Link href={firstBanner.linkUrl} className="hover:underline">
+            {bannerContent}
+          </Link>
+        ) : (
+          <span>{bannerContent}</span>
+        )}
+      </div>
   );
 
   return (
@@ -62,19 +74,16 @@ export default function TopTickerBanner() {
         backgroundColor: firstBanner.backgroundColor || 'hsl(var(--primary))',
         color: firstBanner.textColor || 'hsl(var(--primary-foreground))',
       }}
+      role="region"
+      aria-label={`Promotional Announcement: ${firstBanner.title}`}
+      aria-live="polite"
     >
       <div className="ticker-track flex">
-        {[...Array(10)].map((_, i) => (
-          <div key={i} className="flex-shrink-0 whitespace-nowrap px-8 py-2">
-            {firstBanner.linkUrl ? (
-              <Link href={firstBanner.linkUrl} className="hover:underline">
-                {bannerContent}
-              </Link>
-            ) : (
-              <span>{bannerContent}</span>
-            )}
-          </div>
-        ))}
+        {/* Duplicate content to create a seamless loop */}
+        <TickerItem />
+        <TickerItem />
+        <TickerItem />
+        <TickerItem />
       </div>
       <button
         onClick={handleClose}

@@ -4,15 +4,29 @@
     transform: translateX(0%);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-50%); /* Animate to half width for seamless loop */
   }
 }
 
 .ticker-track {
   animation: ticker 40s linear infinite;
   will-change: transform;
+  display: flex;
+  width: 200%; /* Double the width to fit duplicated content */
 }
 
 .group\/ticker:hover .ticker-track {
   animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+    width: 100%;
+    justify-content: center;
+  }
+  /* Hide the duplicated items when animation is off */
+  .ticker-track > *:not(:first-child) {
+      display: none;
+  }
 }
