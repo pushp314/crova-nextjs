@@ -10,6 +10,11 @@ import { isAdmin, isDelivery } from '@/lib/rbac';
 
 const UPLOAD_DIR = './public/uploads';
 
+// Ensure the base upload directory exists
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
 // Configure storage for multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -44,19 +49,13 @@ const upload = multer({
   },
 });
 
-// Promisify the multer upload middleware
+// Promisify the multer upload middleware to use with async/await
 const uploadMiddleware = promisify(upload.single('file'));
 
 // We need to extend the NextRequest to work with multer
 interface RequestWithFile extends NextRequest {
   file?: Express.Multer.File;
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 // POST /api/upload?bucket=<bucket_name>
 export async function POST(req: RequestWithFile) {
@@ -69,11 +68,15 @@ export async function POST(req: RequestWithFile) {
     const { searchParams } = new URL(req.url);
     const bucket = searchParams.get('bucket');
 
+    if (!bucket) {
+        return NextResponse.json({ message: 'Bucket query parameter is required.' }, { status: 400 });
+    }
+
     // RBAC for different buckets
     if (bucket === 'banners' && !isAdmin(session)) {
       return NextResponse.json({ message: 'Forbidden: Only admins can upload banners.' }, { status: 403 });
     }
-    if (bucket === 'proofs' && !isAdmin(session) && !isDelivery(session)) {
+    if (bucket === 'proofs' && !isDelivery(session) && !isAdmin(session)) {
       return NextResponse.json({ message: 'Forbidden: Only admins or delivery users can upload proofs.' }, { status: 403 });
     }
 
@@ -87,15 +90,18 @@ export async function POST(req: RequestWithFile) {
       return NextResponse.json({ message: 'No file uploaded.' }, { status: 400 });
     }
 
-    // Construct the public URL
-    const publicUrl = req.file.path.replace('public', '');
+    // Construct the public URL by removing 'public' from the path
+    const publicUrl = req.file.path.replace(/^public/, '');
 
     return NextResponse.json({ url: publicUrl }, { status: 200 });
 
   } catch (error: any) {
     console.error('File Upload Error:', error);
     if (error.code === 'LIMIT_FILE_SIZE') {
-      return NextResponse.json({ message: 'File is too large. Maximum size is 3MB.'}, { status: 400 });
+      return NextResponse.json({ message: 'File is too large. Maximum size is 3MB.'}, { status: 413 });
+    }
+     if (error.message.includes('Invalid file type')) {
+      return NextResponse.json({ message: error.message }, { status: 415 });
     }
     return NextResponse.json({ message: error.message || 'An internal server error occurred.' }, { status: 500 });
   }
