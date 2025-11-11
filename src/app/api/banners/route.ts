@@ -21,9 +21,10 @@ export async function GET(req: Request) {
           { startsAt: null, endsAt: { gte: now } },
         ],
       },
-      orderBy: {
-        priority: 'desc',
-      },
+      orderBy: [
+        { priority: 'desc' },
+        { createdAt: 'desc' }
+      ],
     });
 
     return NextResponse.json(banners);

@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { X } from 'lucide-react';
 import { type PromotionBanner } from '@/lib/types';
-import { cn } from '@/lib/utils';
 import './TopTickerBanner.css';
 
 const HIDE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
