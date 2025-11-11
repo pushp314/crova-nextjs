@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 // ============================================================
@@ -69,7 +70,7 @@ export const wishlistItemSchema = z.object({
 // ============================================================
 // Order Schemas
 // ============================================================
-export const orderStatusSchema = z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
+export const orderStatusSchema = z.enum(['PENDING', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'DELIVERY_FAILED', 'CANCELLED']);
 
 export const createOrderSchema = z.object({}); // No input needed, created from cart
 

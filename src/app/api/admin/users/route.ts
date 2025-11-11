@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
@@ -14,10 +15,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const role = searchParams.get('role') as UserRole;
     const skip = (page - 1) * limit;
+
+    const whereClause = role ? { role } : {};
 
     const [users, total] = await prisma.$transaction([
         prisma.user.findMany({
+            where: whereClause,
             skip,
             take: limit,
             select: {
@@ -33,7 +38,7 @@ export async function GET(req: Request) {
                 createdAt: 'desc',
             }
         }),
-        prisma.user.count()
+        prisma.user.count({ where: whereClause })
     ]);
     
     return NextResponse.json({

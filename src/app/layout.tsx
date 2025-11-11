@@ -12,6 +12,7 @@ import { Toaster } from '@/components/ui/toaster';
 import AuthProvider from '@/contexts/auth-provider';
 import Script from 'next/script';
 import { Suspense } from 'react';
+import TopTickerBanner from '@/components/ui/TopTickerBanner';
 
 export const metadata: Metadata = {
   title: 'NOVA - Modern Fashion',
@@ -34,6 +35,7 @@ export default function RootLayout({
         <AuthProvider>
           <WishlistProvider>
             <CartProvider>
+              <TopTickerBanner />
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <main className="flex-grow container mt-16">{children}</main>

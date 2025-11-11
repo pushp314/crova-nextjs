@@ -30,12 +30,20 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { getOrderStatusVariant, getPaymentStatusVariant } from '@/lib/utils';
-import type { Order } from '@/lib/types';
+import type { Order, UserProfile } from '@/lib/types';
 import { OrderStatus } from '@prisma/client';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 const LoadingSkeleton = () => (
   <Card>
@@ -61,25 +69,32 @@ const LoadingSkeleton = () => (
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [deliveryUsers, setDeliveryUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchOrders = async () => {
+  const fetchData = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/admin/orders');
-      if (res.ok) {
-        const data = await res.json();
-        setOrders(data);
+      const [ordersRes, usersRes] = await Promise.all([
+        fetch('/api/admin/orders'),
+        fetch('/api/admin/users?role=DELIVERY'),
+      ]);
+      if (ordersRes.ok) {
+        setOrders(await ordersRes.json());
+      }
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setDeliveryUsers(usersData.data);
       }
     } catch (error) {
-      console.error('Failed to fetch orders:', error);
+      console.error('Failed to fetch data:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
+    fetchData();
   }, []);
 
   const handleStatusChange = async (orderId: string, status: OrderStatus) => {
@@ -89,9 +104,7 @@ export default function AdminOrdersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) {
-        throw new Error('Failed to update order status');
-      }
+      if (!res.ok) throw new Error('Failed to update order status');
       const updatedOrder = await res.json();
       setOrders(orders.map(o => o.id === orderId ? updatedOrder : o));
       toast.success(`Order #${orderId.substring(0,6)} status updated to ${status}`);
@@ -99,8 +112,27 @@ export default function AdminOrdersPage() {
       toast.error('Failed to update order status.');
     }
   };
+
+  const handleAssignDelivery = async (orderId: string, assignedToId: string) => {
+    try {
+        const res = await fetch(`/api/admin/orders/${orderId}/assign`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assignedToId }),
+        });
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || 'Failed to assign order');
+        }
+        const updatedOrder = await res.json();
+        setOrders(orders.map(o => o.id === orderId ? {...o, assignedToId: updatedOrder.assignedToId, assignedTo: updatedOrder.assignedTo } : o));
+        toast.success(`Order assigned to ${updatedOrder.assignedTo.name}`);
+    } catch(error: any) {
+        toast.error('Assignment failed', { description: error.message });
+    }
+  };
   
-  const orderStatuses: OrderStatus[] = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+  const orderStatuses: OrderStatus[] = ['PENDING', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'DELIVERY_FAILED', 'CANCELLED'];
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -120,8 +152,8 @@ export default function AdminOrdersPage() {
                 <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Order Status</TableHead>
-                <TableHead>Payment</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Assigned To</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -142,9 +174,17 @@ export default function AdminOrdersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                      <Badge variant={getPaymentStatusVariant(order.paymentStatus)} className="capitalize">
-                        {order.paymentMethod} - {order.paymentStatus.toLowerCase()}
-                      </Badge>
+                     <Select onValueChange={(value) => handleAssignDelivery(order.id, value)} value={order.assignedToId || ''}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Assign Delivery" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="unassign">Unassign</SelectItem>
+                            {deliveryUsers.map(user => (
+                                <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell className="text-right">
                     ₹{order.totalAmount.toFixed(2)}

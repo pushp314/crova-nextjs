@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { OrderStatus, PaymentStatus } from "@prisma/client";
@@ -18,6 +19,10 @@ export function getOrderStatusVariant(status: OrderStatus): BadgeProps['variant'
     case 'DELIVERED':
       return 'default'; // Should be a success variant, but we use default
     case 'CANCELLED':
+      return 'destructive';
+    case 'OUT_FOR_DELIVERY':
+      return 'secondary';
+    case 'DELIVERY_FAILED':
       return 'destructive';
     default:
       return 'outline';

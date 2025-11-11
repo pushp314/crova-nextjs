@@ -1,3 +1,4 @@
+
 import { PrismaClient, Prisma, UserRole } from '@prisma/client';
 import { hash } from 'bcrypt';
 
@@ -114,6 +115,8 @@ async function main() {
   console.log('Deleted existing categories');
   await prisma.product.deleteMany({});
   console.log('Deleted existing products');
+  await prisma.promotionBanner.deleteMany({});
+  console.log('Deleted existing promotion banners');
   
   // Create an admin user
   const hashedPassword = await hash('admin123', 10);
@@ -127,6 +130,19 @@ async function main() {
     }
   });
   console.log('Created admin user');
+
+  // Create a delivery user
+  const deliveryPassword = await hash('delivery123', 10);
+  await prisma.user.create({
+    data: {
+      name: 'Delivery Person',
+      email: 'delivery@nova.com',
+      password: deliveryPassword,
+      role: UserRole.DELIVERY,
+      emailVerified: new Date(),
+    }
+  });
+  console.log('Created delivery user');
 
   // Create categories
   await prisma.category.createMany({
@@ -145,6 +161,21 @@ async function main() {
     });
     console.log(`Created product with id: ${product.id}`);
   }
+
+  // Create a promotion banner
+  await prisma.promotionBanner.create({
+    data: {
+      title: 'Free Shipping',
+      text: 'on all orders over ₹500',
+      active: true,
+      priority: 1,
+      backgroundColor: '#000000',
+      textColor: '#FFFFFF',
+    }
+  });
+  console.log('Created a promotion banner');
+
+
   console.log(`Seeding finished.`);
 }
 
