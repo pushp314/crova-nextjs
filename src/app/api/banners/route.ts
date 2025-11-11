@@ -1,11 +1,13 @@
 
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { PrismaClient } from '@prisma/client';
 import { getCurrentUser } from '@/lib/auth';
 import { requireRole } from '@/lib/rbac';
 import { bannerSchema } from '@/lib/validation/banner';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
+
+const prisma = new PrismaClient();
 
 // GET /api/banners (public)
 export async function GET(req: Request) {

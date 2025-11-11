@@ -1,13 +1,15 @@
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { prisma } from '@/lib/db';
-import { OrderStatus } from '@prisma/client';
+import { PrismaClient, OrderStatus } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 // GET /api/orders - get current user's order history
 export async function GET() {
   try {
     const session = await getCurrentUser();
-    if (!session?.user.id) {
+    if (!session?.user?.id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -39,7 +41,7 @@ export async function GET() {
 export async function POST() {
   try {
     const session = await getCurrentUser();
-    if (!session?.user.id) {
+    if (!session?.user?.id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
     const userId = session.user.id;
