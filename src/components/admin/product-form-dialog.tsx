@@ -36,6 +36,8 @@ import {
 import type { Product, Category } from "@/lib/types";
 import { productSchema } from "@/lib/validations";
 import { Switch } from "@/components/ui/switch";
+import { ImageUploadZone } from "@/components/admin/ImageUploadZone";
+import { Separator } from "@/components/ui/separator";
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -99,11 +101,6 @@ export function ProductFormDialog({
       colors: [],
       featured: false,
     },
-  });
-
-  const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({
-    control: form.control,
-    name: "images",
   });
   
   const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
@@ -278,7 +275,30 @@ export function ProductFormDialog({
               )}
             />
             
-            {renderArrayField("Images", imageFields, removeImage, () => appendImage({ value: "" }), form)}
+            {/* Image Upload Section */}
+            <div className="space-y-2">
+              <FormLabel>Product Images *</FormLabel>
+              <ImageUploadZone
+                images={form.watch('images').map(img => img.value).filter(Boolean)}
+                onChange={(urls) => {
+                  form.setValue('images', urls.map(url => ({ value: url })), {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }}
+                maxImages={6}
+                maxSizeMB={3}
+                disabled={isLoading}
+              />
+              {form.formState.errors.images && (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.images.message}
+                </p>
+              )}
+            </div>
+
+            <Separator />
+            
             {renderArrayField("Sizes", sizeFields, removeSize, () => appendSize({ value: "" }), form)}
             {renderArrayField("Colors", colorFields, removeColor, () => appendColor({ value: "" }), form)}
 
