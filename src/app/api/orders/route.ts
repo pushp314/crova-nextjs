@@ -1,9 +1,8 @@
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { PrismaClient, OrderStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
+import { OrderStatus } from '@prisma/client';
 
 // GET /api/orders - get current user's order history
 export async function GET() {

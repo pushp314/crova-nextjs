@@ -1,10 +1,8 @@
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { z } from 'zod';
-
-const prisma = new PrismaClient();
 
 const updateUserSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').optional(),
@@ -28,8 +26,6 @@ export async function GET(req: Request) {
         email: true,
         image: true,
         role: true,
-        createdAt: true,
-        updatedAt: true,
       },
     });
 
@@ -68,8 +64,6 @@ export async function PUT(req: Request) {
         email: true,
         image: true,
         role: true,
-        createdAt: true,
-        updatedAt: true,
       },
     });
 
