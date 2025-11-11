@@ -1,7 +1,8 @@
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { UserRole } from '@prisma/client';
+import { requireRole } from '@/lib/rbac';
 import { categorySchema } from '@/lib/validations';
 import { z } from 'zod';
 
@@ -28,10 +29,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const session = await getCurrentUser();
-
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
+    requireRole(session, ['ADMIN']);
 
     const body = await req.json();
     const data = categorySchema.parse(body);
@@ -47,6 +45,9 @@ export async function POST(req: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: error.errors[0].message }, { status: 400 });
+    }
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
     console.error('POST /api/categories Error:', error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });

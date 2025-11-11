@@ -3,14 +3,13 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { UserRole } from '@prisma/client';
+import { requireRole } from '@/lib/rbac';
 
 // GET /api/admin/users - Get all users (admin only)
 export async function GET(req: Request) {
+  try {
     const session = await getCurrentUser();
-
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
+    requireRole(session, ['ADMIN']);
     
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -50,4 +49,11 @@ export async function GET(req: Request) {
         totalPages: Math.ceil(total/limit)
       }
     });
+  } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
+    console.error('GET /api/admin/users Error:', error);
+    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+  }
 }

@@ -39,10 +39,13 @@ export default function AdminBannersPage() {
       const res = await fetch('/api/admin/banners');
       if (res.ok) {
         setBanners(await res.json());
+      } else {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to load banners.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch data:', error);
-      toast.error('Failed to load banners. Please try again.');
+      toast.error('Failed to load banners', { description: error.message });
     } finally {
       setIsLoading(false);
     }

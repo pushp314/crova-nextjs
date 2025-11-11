@@ -1,7 +1,8 @@
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { UserRole } from '@prisma/client';
+import { requireRole } from '@/lib/rbac';
 import { updateProductSchema } from '@/lib/validations';
 import { z } from 'zod';
 
@@ -61,10 +62,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 export async function PUT(req: Request, { params }: RouteParams) {
   try {
     const session = await getCurrentUser();
-
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
+    requireRole(session, ['ADMIN']);
 
     const { id } = params;
     const body = await req.json();
@@ -86,6 +84,9 @@ export async function PUT(req: Request, { params }: RouteParams) {
      if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
     }
+     if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
     console.error(`PUT /api/products/${params.id} Error:`, error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }
@@ -94,10 +95,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
 export async function DELETE(req: Request, { params }: RouteParams) {
   try {
     const session = await getCurrentUser();
-
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
+    requireRole(session, ['ADMIN']);
 
     const { id } = params;
     
@@ -115,6 +113,9 @@ export async function DELETE(req: Request, { params }: RouteParams) {
   } catch (error) {
      if (error instanceof Error && 'code' in error && error.code === 'P2025') {
       return NextResponse.json({ message: 'Product not found.' }, { status: 404 });
+    }
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
     console.error(`DELETE /api/products/${params.id} Error:`, error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });

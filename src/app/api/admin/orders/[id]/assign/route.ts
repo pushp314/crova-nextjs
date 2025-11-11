@@ -22,6 +22,19 @@ export async function POST(req: Request, { params }: RouteParams) {
     const body = await req.json();
     const { assignedToId } = assignOrderSchema.parse(body);
 
+    if (assignedToId === 'unassign') {
+       const updatedOrder = await prisma.order.update({
+        where: { id: params.id },
+        data: { assignedToId: null },
+        include: {
+          assignedTo: {
+            select: { id: true, name: true, email: true }
+          }
+        }
+      });
+      return NextResponse.json(updatedOrder);
+    }
+
     const deliveryUser = await prisma.user.findUnique({
       where: { id: assignedToId },
     });

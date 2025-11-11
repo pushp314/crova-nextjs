@@ -1,14 +1,14 @@
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { UserRole, PaymentStatus } from '@prisma/client';
+import { PaymentStatus } from '@prisma/client';
+import { requireRole } from '@/lib/rbac';
 
 export async function GET(req: Request) {
   try {
     const session = await getCurrentUser();
-    if (!session?.user || session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
+    requireRole(session, ['ADMIN']);
 
     const totalUsers = await prisma.user.count();
     const totalOrders = await prisma.order.count();
@@ -51,6 +51,9 @@ export async function GET(req: Request) {
       onlineOrders,
     });
   } catch (error) {
+    if (error instanceof Error && error.message === 'FORBIDDEN') {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
     console.error('GET /api/admin/stats Error:', error);
     return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
   }

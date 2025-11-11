@@ -35,10 +35,13 @@ export default function DeliveryOrdersPage() {
       const res = await fetch('/api/delivery/orders');
       if (res.ok) {
         setOrders(await res.json());
+      } else {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to load assigned orders.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch orders:', error);
-      toast.error('Failed to load assigned orders.');
+      toast.error('Failed to load assigned orders.', { description: error.message });
     } finally {
       setIsLoading(false);
     }
