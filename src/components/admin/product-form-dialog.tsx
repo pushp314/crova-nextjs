@@ -63,7 +63,7 @@ const renderArrayField = (
       <div key={field.id} className="flex items-center gap-2">
         <FormField
           control={form.control}
-          name={`${label.toLowerCase() as "images" | "sizes" | "colors"}.${index}.value` as any}
+          name={`${label.toLowerCase() as "sizes" | "colors"}.${index}.value` as any}
           render={({ field }) => (
             <Input {...field} placeholder={`${label.slice(0, -1)} ${index + 1}`} />
           )}
@@ -148,20 +148,25 @@ export function ProductFormDialog({
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsLoading(true);
+    // The API expects arrays of strings, not arrays of objects.
+    // We map the form data to the correct format here.
+    const apiPayload = {
+      ...data,
+      images: data.images.map(img => img.value),
+      sizes: data.sizes.map(s => s.value),
+      colors: data.colors.map(c => c.value),
+    };
+    
     const url = isEditing ? `/api/products/${product?.id}` : '/api/products';
     const method = isEditing ? 'PUT' : 'POST';
 
     try {
-      // The payload is now structured correctly by the form itself.
-      // Zod validation on the form handles empty arrays and other constraints.
-      const payload = data; 
-      
       toast.loading(`${isEditing ? 'Updating' : 'Creating'} product...`, { id: 'product-save' });
 
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(apiPayload),
       });
 
       if (!res.ok) {
@@ -311,27 +316,29 @@ export function ProductFormDialog({
             <Separator />
 
             {/* Image Upload Section */}
-            <div className="space-y-2">
-                <FormField
-                    control={form.control}
-                    name="images"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Product Images</FormLabel>
-                             <ImageUploadZone
-                                images={field.value.map(img => img.value).filter(Boolean)}
-                                onChange={(urls) => {
-                                field.onChange(urls.map(url => ({ value: url })));
-                                }}
-                                maxImages={6}
-                                maxSizeMB={3}
-                                disabled={isLoading}
-                            />
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
+            <FormField
+              control={form.control}
+              name="images"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Product Images</FormLabel>
+                  <FormControl>
+                    <ImageUploadZone
+                      images={field.value?.map(img => img.value) || []}
+                      onChange={(urls) => {
+                        // Transform the string array from ImageUploadZone 
+                        // into an array of objects for react-hook-form
+                        field.onChange(urls.map(url => ({ value: url })));
+                      }}
+                      maxImages={6}
+                      maxSizeMB={3}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Separator />
             

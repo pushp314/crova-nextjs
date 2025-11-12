@@ -4,20 +4,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/rbac';
 import { z } from 'zod';
-
-// This schema now matches the structure sent by react-hook-form's useFieldArray
-const postProductSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  description: z.string().min(10, 'Description must be at least 10 characters.'),
-  price: z.coerce.number().positive('Price must be a positive number.'),
-  stock: z.coerce.number().int().min(0, 'Stock cannot be negative.'),
-  categoryId: z.string().min(1, 'Category is required.'),
-  images: z.array(z.object({ value: z.string().url() })).min(1, 'At least one image is required.'),
-  sizes: z.array(z.object({ value: z.string().min(1) })).min(1, 'At least one size is required.'),
-  colors: z.array(z.object({ value: z.string().min(1) })).min(1, 'At least one color is required.'),
-  featured: z.boolean().default(false),
-}).required();
-
+import { productFormSchema } from '@/lib/validations';
 
 export async function GET(req: Request) {
   try {
@@ -53,7 +40,8 @@ export async function POST(req: Request) {
     requireRole(session, ['ADMIN']);
 
     const body = await req.json();
-    const data = postProductSchema.parse(body);
+    // Use the form schema for validation as it matches the frontend structure
+    const data = productFormSchema.parse(body);
 
     // Map the array of objects to an array of strings before saving
     const product = await prisma.product.create({
