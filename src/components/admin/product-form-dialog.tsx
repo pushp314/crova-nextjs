@@ -75,6 +75,9 @@ const renderArrayField = (
     <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
       <PlusCircle className="mr-2 h-4 w-4" /> Add {label.slice(0, -1)}
     </Button>
+     <FormMessage>
+        {form.formState.errors[label.toLowerCase() as "sizes" | "colors"]?.root?.message}
+    </FormMessage>
   </div>
 );
 
@@ -143,43 +146,15 @@ export function ProductFormDialog({
   }, [isOpen, product, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
-    console.log('Form submitted with data:', data);
     setIsLoading(true);
     const url = isEditing ? `/api/products/${product?.id}` : '/api/products';
     const method = isEditing ? 'PUT' : 'POST';
 
     try {
-      const payload = {
-        ...data,
-        images: data.images.map(img => img.value).filter(Boolean),
-        sizes: data.sizes.map(s => s.value).filter(Boolean),
-        colors: data.colors.map(c => c.value).filter(Boolean),
-      }
-
-      console.log('Payload to send:', payload);
-
-      // Check if there are any images
-      if (payload.images.length === 0) {
-        toast.error("Validation Error", { description: "Please upload at least one product image" });
-        setIsLoading(false);
-        return;
-      }
-
-      // Check if there are any sizes
-      if (payload.sizes.length === 0) {
-        toast.error("Validation Error", { description: "Please add at least one size" });
-        setIsLoading(false);
-        return;
-      }
-
-      // Check if there are any colors
-      if (payload.colors.length === 0) {
-        toast.error("Validation Error", { description: "Please add at least one color" });
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('Sending request to:', url, 'with method:', method);
+      // The payload is now structured correctly by the form itself.
+      // Zod validation on the form handles empty arrays and other constraints.
+      const payload = data; 
+      
       toast.loading(`${isEditing ? 'Updating' : 'Creating'} product...`, { id: 'product-save' });
 
       const res = await fetch(url, {
@@ -188,17 +163,12 @@ export function ProductFormDialog({
         body: JSON.stringify(payload),
       });
 
-      console.log('Response status:', res.status);
-
       if (!res.ok) {
         const errorData = await res.json();
-        console.error('Error response:', errorData);
-        toast.dismiss('product-save');
         throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'create'} product.`);
       }
 
       const savedProduct = await res.json();
-      console.log('Product saved successfully:', savedProduct);
       
       toast.dismiss('product-save');
       toast.success(`Product ${isEditing ? 'updated' : 'created'} successfully!`, {
@@ -208,11 +178,11 @@ export function ProductFormDialog({
       onSave(savedProduct);
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error in onSubmit:', error);
       toast.dismiss('product-save');
       toast.error("Operation Failed", { 
-        description: error.message || 'Something went wrong. Please try again.' 
+        description: error.message || 'Something went wrong. Please check the console for details.' 
       });
+      console.error('Error in onSubmit:', error);
     } finally {
       setIsLoading(false);
     }
@@ -324,8 +294,8 @@ export function ProductFormDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel>Featured</FormLabel>
-                    <FormMessage />
+                    <FormLabel>Featured Product</FormLabel>
+                    <FormDescription>This product will appear on the homepage.</FormDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -337,31 +307,37 @@ export function ProductFormDialog({
               )}
             />
             
+            <Separator />
+
             {/* Image Upload Section */}
             <div className="space-y-2">
-              <FormLabel>Product Images *</FormLabel>
-              <ImageUploadZone
-                images={form.watch('images').map(img => img.value).filter(Boolean)}
-                onChange={(urls) => {
-                  form.setValue('images', urls.map(url => ({ value: url })), {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }}
-                maxImages={6}
-                maxSizeMB={3}
-                disabled={isLoading}
-              />
-              {form.formState.errors.images && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.images.message}
-                </p>
-              )}
+                <FormField
+                    control={form.control}
+                    name="images"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Product Images</FormLabel>
+                             <ImageUploadZone
+                                images={field.value.map(img => img.value).filter(Boolean)}
+                                onChange={(urls) => {
+                                field.onChange(urls.map(url => ({ value: url })));
+                                }}
+                                maxImages={6}
+                                maxSizeMB={3}
+                                disabled={isLoading}
+                            />
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </div>
 
             <Separator />
             
             {renderArrayField("Sizes", sizeFields, removeSize, () => appendSize({ value: "" }), form)}
+            
+            <Separator />
+
             {renderArrayField("Colors", colorFields, removeColor, () => appendColor({ value: "" }), form)}
 
             <DialogFooter>
