@@ -30,7 +30,7 @@ export const productCreateSchema = z.object({
     .min(1, 'Category is required')
     .cuid('Invalid category ID format'),
   
-  images: z.array(z.string().url('Each image must be a valid URL'))
+  images: z.array(z.string().min(1, 'Image path cannot be empty'))
     .min(1, 'At least one product image is required')
     .max(6, 'Maximum 6 images allowed per product'),
   
@@ -76,7 +76,7 @@ export const productUpdateSchema = z.object({
     .cuid('Invalid category ID format')
     .optional(),
   
-  images: z.array(z.string().url('Each image must be a valid URL'))
+  images: z.array(z.string().min(1, 'Image path cannot be empty'))
     .min(1, 'At least one product image is required')
     .max(6, 'Maximum 6 images allowed per product')
     .optional(),
@@ -119,7 +119,7 @@ export const productFormSchema = z.object({
   price: z.coerce.number().positive('Price must be a positive number'),
   stock: z.coerce.number().int().min(0, 'Stock cannot be negative'),
   categoryId: z.string().min(1, 'Category is required'),
-  images: z.array(z.object({ value: z.string().url() })).min(1, 'At least one image is required'),
+  images: z.array(z.object({ value: z.string().min(1) })).min(1, 'At least one image is required'),
   sizes: z.array(z.object({ value: z.string().min(1) })).min(1, 'At least one size is required'),
   colors: z.array(z.object({ value: z.string().min(1) })).min(1, 'At least one color is required'),
   featured: z.boolean().default(false),

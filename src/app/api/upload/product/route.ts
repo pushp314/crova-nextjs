@@ -1,10 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { requireRole } from '@/lib/rbac';
-import formidable, { File as FormidableFile, Fields, Files } from 'formidable';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Readable } from 'stream';
 
 // Configuration
 const BASE_UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'products');
@@ -22,65 +20,47 @@ async function ensureUploadDir(dirPath: string) {
   }
 }
 
-// Convert Web Request body to Node.js Readable stream
-function webStreamToNodeStream(webStream: ReadableStream<Uint8Array>): Readable {
-  const reader = webStream.getReader();
-  return new Readable({
-    async read() {
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          this.push(null);
-        } else {
-          this.push(Buffer.from(value));
-        }
-      } catch (error) {
-        this.destroy(error as Error);
-      }
-    },
-  });
-}
-
-// Parse multipart form data with formidable
+// Parse multipart form data using native FormData API
 async function parseProductImages(
   req: NextRequest
-): Promise<{ fields: Fields; files: Files }> {
+): Promise<File[]> {
   await ensureUploadDir(BASE_UPLOAD_DIR);
 
-  const form = formidable({
-    uploadDir: BASE_UPLOAD_DIR,
-    keepExtensions: true,
-    maxFileSize: MAX_FILE_SIZE,
-    maxFiles: MAX_FILES,
-    multiples: true,
-    filename: (name, ext, part) => {
-      // Generate unique filename: productname-timestamp-random.ext
-      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-      const sanitizedName = part.originalFilename
-        ?.replace(/[^a-zA-Z0-9.-]/g, '_')
-        .replace(/_{2,}/g, '_') || 'product';
-      
-      const extension = path.extname(sanitizedName) || ext;
-      const basename = path.basename(sanitizedName, path.extname(sanitizedName));
-      
-      return `${basename}-${uniqueSuffix}${extension}`;
-    },
-    filter: (part) => {
-      // Validate MIME type during upload
-      const mimeType = part.mimetype || '';
-      return ALLOWED_TYPES.includes(mimeType);
-    },
-  });
+  try {
+    const formData = await req.formData();
+    const files: File[] = [];
 
-  // Convert Web ReadableStream to Node.js stream
-  const nodeStream = webStreamToNodeStream(req.body as ReadableStream<Uint8Array>);
+    // Get all files from the formData
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        files.push(value);
+      }
+    }
 
-  return new Promise((resolve, reject) => {
-    form.parse(nodeStream as any, (err, fields, files) => {
-      if (err) reject(err);
-      else resolve({ fields, files });
-    });
-  });
+    return files;
+  } catch (error) {
+    throw new Error('Failed to parse form data');
+  }
+}
+
+// Save uploaded file to disk
+async function saveFile(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  
+  // Generate unique filename
+  const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+  const sanitizedName = file.name
+    .replace(/[^a-zA-Z0-9.-]/g, '_')
+    .replace(/_{2,}/g, '_');
+  
+  const extension = path.extname(sanitizedName);
+  const basename = path.basename(sanitizedName, extension);
+  const filename = `${basename}-${uniqueSuffix}${extension}`;
+  
+  const filepath = path.join(BASE_UPLOAD_DIR, filename);
+  await fs.writeFile(filepath, buffer);
+  
+  return filename;
 }
 
 /**
@@ -125,53 +105,29 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Parse multipart form data
-    const { files } = await parseProductImages(req);
+    const files = await parseProductImages(req);
 
-    // 4. Extract uploaded files
-    const uploadedFiles = files.file || files.files || files.images || [];
-    const fileArray = Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles];
-
-    if (fileArray.length === 0) {
+    if (files.length === 0) {
       return NextResponse.json(
         { error: 'No Files', message: 'No files were uploaded.' }, 
         { status: 400 }
       );
     }
 
-    if (fileArray.length > MAX_FILES) {
-      // Delete all uploaded files
-      for (const file of fileArray) {
-        if (file && typeof file === 'object') {
-          const formFile = file as FormidableFile;
-          try {
-            await fs.unlink(formFile.filepath);
-          } catch {}
-        }
-      }
-
+    if (files.length > MAX_FILES) {
       return NextResponse.json(
         { error: 'Too Many Files', message: `Maximum ${MAX_FILES} files allowed.` },
         { status: 400 }
       );
     }
 
-    // 5. Validate and process files
+    // 4. Validate and save files
     const validatedFilenames: string[] = [];
 
-    for (const file of fileArray) {
-      if (!file || typeof file !== 'object') continue;
-
-      const formFile = file as FormidableFile;
-
-      // Validate file extension
-      const ext = path.extname(formFile.originalFilename || '').toLowerCase();
-      if (!ALLOWED_EXTENSIONS.includes(ext)) {
-        // Delete invalid file
-        try {
-          await fs.unlink(formFile.filepath);
-        } catch {}
-
-        // Delete already processed files
+    for (const file of files) {
+      // Validate file type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        // Clean up already saved files
         for (const filename of validatedFilenames) {
           try {
             await fs.unlink(path.join(BASE_UPLOAD_DIR, filename));
@@ -181,20 +137,34 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error: 'Invalid File Type',
-            message: `File type ${ext} not allowed. Only JPG, PNG, and WebP are supported.`,
+            message: `File type not allowed. Only JPEG, PNG, and WebP are supported.`,
+          },
+          { status: 415 }
+        );
+      }
+
+      // Validate file extension
+      const ext = path.extname(file.name).toLowerCase();
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        // Clean up already saved files
+        for (const filename of validatedFilenames) {
+          try {
+            await fs.unlink(path.join(BASE_UPLOAD_DIR, filename));
+          } catch {}
+        }
+
+        return NextResponse.json(
+          {
+            error: 'Invalid File Type',
+            message: `File extension ${ext} not allowed. Only JPG, PNG, and WebP are supported.`,
           },
           { status: 415 }
         );
       }
 
       // Validate file size
-      if (formFile.size > MAX_FILE_SIZE) {
-        // Delete oversized file
-        try {
-          await fs.unlink(formFile.filepath);
-        } catch {}
-
-        // Delete already processed files
+      if (file.size > MAX_FILE_SIZE) {
+        // Clean up already saved files
         for (const filename of validatedFilenames) {
           try {
             await fs.unlink(path.join(BASE_UPLOAD_DIR, filename));
@@ -210,8 +180,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Extract just the filename (not full path)
-      const filename = path.basename(formFile.filepath);
+      // Save file to disk
+      const filename = await saveFile(file);
       validatedFilenames.push(filename);
     }
 
@@ -229,32 +199,32 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('[PRODUCT_UPLOAD_ERROR]', error);
 
-    // Handle specific formidable errors
-    if (error.message?.includes('maxFileSize') || error.code === 'LIMIT_FILE_SIZE') {
+    // Handle specific errors
+    if (error.message?.includes('File size exceeds')) {
       return NextResponse.json(
         { 
           error: 'File Too Large',
-          message: `File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit.` 
+          message: error.message
         }, 
         { status: 413 }
       );
     }
 
-    if (error.message?.includes('maxFiles')) {
+    if (error.message?.includes('Too Many Files')) {
       return NextResponse.json(
         { 
           error: 'Too Many Files',
-          message: `Maximum ${MAX_FILES} files allowed.` 
+          message: error.message
         }, 
         { status: 400 }
       );
     }
 
-    if (error.message?.includes('unsupported') || error.message?.includes('filter')) {
+    if (error.message?.includes('File type') || error.message?.includes('extension')) {
       return NextResponse.json(
         { 
           error: 'Unsupported File Type',
-          message: 'Only JPEG, PNG, and WebP images are allowed.' 
+          message: error.message
         }, 
         { status: 415 }
       );
@@ -264,7 +234,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Upload Failed',
-        message: 'An error occurred during upload. Please try again.' 
+        message: error.message || 'An error occurred during upload. Please try again.' 
       }, 
       { status: 500 }
     );

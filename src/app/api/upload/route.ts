@@ -1,10 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { isAdmin, isDelivery } from '@/lib/rbac';
-import formidable, { File as FormidableFile, Fields, Files } from 'formidable';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Readable } from 'stream';
 
 // Configuration
 const BASE_UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
@@ -21,65 +19,26 @@ async function ensureUploadDir(dirPath: string) {
   }
 }
 
-// Convert Web Request body to Node.js Readable stream
-function webStreamToNodeStream(webStream: ReadableStream<Uint8Array>): Readable {
-  const reader = webStream.getReader();
-  return new Readable({
-    async read() {
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          this.push(null);
-        } else {
-          this.push(Buffer.from(value));
-        }
-      } catch (error) {
-        this.destroy(error as Error);
-      }
-    },
-  });
-}
-
-// Parse multipart form data with formidable
-async function parseFormData(
-  req: NextRequest,
-  uploadDir: string
-): Promise<{ fields: Fields; files: Files }> {
+// Save uploaded file to disk
+async function saveFile(file: File, uploadDir: string): Promise<string> {
   await ensureUploadDir(uploadDir);
-
-  const form = formidable({
-    uploadDir,
-    keepExtensions: true,
-    maxFileSize: MAX_FILE_SIZE,
-    multiples: true,
-    filename: (name, ext, part) => {
-      // Generate unique filename: originalname-timestamp-random.ext
-      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-      const sanitizedName = part.originalFilename
-        ?.replace(/[^a-zA-Z0-9.-]/g, '_')
-        .replace(/_{2,}/g, '_') || 'upload';
-      
-      const extension = path.extname(sanitizedName) || ext;
-      const basename = path.basename(sanitizedName, path.extname(sanitizedName));
-      
-      return `${basename}-${uniqueSuffix}${extension}`;
-    },
-    filter: (part) => {
-      // Validate MIME type during upload
-      const mimeType = part.mimetype || '';
-      return ALLOWED_TYPES.includes(mimeType);
-    },
-  });
-
-  // Convert Web ReadableStream to Node.js stream
-  const nodeStream = webStreamToNodeStream(req.body as ReadableStream<Uint8Array>);
-
-  return new Promise((resolve, reject) => {
-    form.parse(nodeStream as any, (err, fields, files) => {
-      if (err) reject(err);
-      else resolve({ fields, files });
-    });
-  });
+  
+  const buffer = Buffer.from(await file.arrayBuffer());
+  
+  // Generate unique filename
+  const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+  const sanitizedName = file.name
+    .replace(/[^a-zA-Z0-9.-]/g, '_')
+    .replace(/_{2,}/g, '_') || 'upload';
+  
+  const extension = path.extname(sanitizedName);
+  const basename = path.basename(sanitizedName, extension);
+  const filename = `${basename}-${uniqueSuffix}${extension}`;
+  
+  const filepath = path.join(uploadDir, filename);
+  await fs.writeFile(filepath, buffer);
+  
+  return filename;
 }
 
 /**
@@ -142,50 +101,74 @@ export async function POST(req: NextRequest) {
     const uploadDir = path.join(BASE_UPLOAD_DIR, bucket, year, month);
 
     // 6. Parse form data
-    const { files } = await parseFormData(req, uploadDir);
+    const formData = await req.formData();
+    const files: File[] = [];
 
-    // 7. Extract uploaded files
-    const uploadedFiles = files.file || files.files || [];
-    const fileArray = Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles];
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        files.push(value);
+      }
+    }
 
-    if (fileArray.length === 0) {
+    if (files.length === 0) {
       return NextResponse.json(
         { error: 'No Files', message: 'No files were uploaded.' },
         { status: 400 }
       );
     }
 
-    // 8. Validate and process files
+    // 7. Validate and save files
     const validatedUrls: string[] = [];
 
-    for (const file of fileArray) {
-      if (!file || typeof file !== 'object') continue;
-
-      const formFile = file as FormidableFile;
-
-      // Validate file extension
-      const ext = path.extname(formFile.originalFilename || '').toLowerCase();
-      if (!ALLOWED_EXTENSIONS.includes(ext)) {
-        // Delete invalid file
-        try {
-          await fs.unlink(formFile.filepath);
-        } catch {}
+    for (const file of files) {
+      // Validate file type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        // Clean up already saved files
+        for (const url of validatedUrls) {
+          const filepath = path.join(process.cwd(), 'public', url);
+          try {
+            await fs.unlink(filepath);
+          } catch {}
+        }
 
         return NextResponse.json(
           {
             error: 'Invalid File Type',
-            message: `File type ${ext} not allowed. Only JPG, PNG, and WebP are supported.`,
+            message: `File type not allowed. Only JPEG, PNG, and WebP are supported.`,
+          },
+          { status: 415 }
+        );
+      }
+
+      // Validate file extension
+      const ext = path.extname(file.name).toLowerCase();
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        // Clean up already saved files
+        for (const url of validatedUrls) {
+          const filepath = path.join(process.cwd(), 'public', url);
+          try {
+            await fs.unlink(filepath);
+          } catch {}
+        }
+
+        return NextResponse.json(
+          {
+            error: 'Invalid File Type',
+            message: `File extension ${ext} not allowed. Only JPG, PNG, and WebP are supported.`,
           },
           { status: 415 }
         );
       }
 
       // Validate file size
-      if (formFile.size > MAX_FILE_SIZE) {
-        // Delete oversized file
-        try {
-          await fs.unlink(formFile.filepath);
-        } catch {}
+      if (file.size > MAX_FILE_SIZE) {
+        // Clean up already saved files
+        for (const url of validatedUrls) {
+          const filepath = path.join(process.cwd(), 'public', url);
+          try {
+            await fs.unlink(filepath);
+          } catch {}
+        }
 
         return NextResponse.json(
           {
@@ -196,10 +179,9 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Generate public URL path: /uploads/bucket/year/month/filename.ext
-      const filename = path.basename(formFile.filepath);
+      // Save file and generate public URL
+      const filename = await saveFile(file, uploadDir);
       const publicUrl = `/uploads/${bucket}/${year}/${month}/${filename}`;
-
       validatedUrls.push(publicUrl);
     }
 

@@ -88,7 +88,9 @@ export function ImageUploadZone({
         const data = await response.json();
         
         if (data.filenames && Array.isArray(data.filenames)) {
-          const newImages = [...images, ...data.filenames];
+          // Convert filenames to full paths: /uploads/products/filename.jpg
+          const imagePaths = data.filenames.map((filename: string) => `/uploads/products/${filename}`);
+          const newImages = [...images, ...imagePaths];
           onChange(newImages);
           toast.success(`Successfully uploaded ${data.filenames.length} image(s)`);
         } else {
