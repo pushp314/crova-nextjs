@@ -2,7 +2,7 @@ import { SVGProps } from "react";
 
 export const Icons = {
   logo: (props: SVGProps<SVGSVGElement>) => (
-    <span className="text-2xl font-bold font-headline tracking-wider">NOVA</span>
+    <span className="text-2xl font-bold font-headline tracking-wider">CROVA</span>
   ),
   facebook: (props: SVGProps<SVGSVGElement>) => (
     <svg

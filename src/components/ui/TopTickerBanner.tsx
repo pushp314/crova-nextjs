@@ -27,16 +27,6 @@ export default function TopTickerBanner() {
   }, [isHidden, banners.length, isLoading]);
 
   useEffect(() => {
-    // Check localStorage on mount
-    const hideUntil = localStorage.getItem('hideTickerUntil');
-    if (hideUntil && Date.now() < parseInt(hideUntil, 10)) {
-      setIsHidden(true);
-      setIsLoading(false);
-      return; // Don't fetch banners if manually hidden
-    } else {
-      setIsHidden(false);
-    }
-
     async function fetchBanners() {
       try {
         setIsLoading(true);
@@ -47,6 +37,21 @@ export default function TopTickerBanner() {
           if (Array.isArray(data)) {
             setBanners(data);
             console.log('Banners loaded:', data.length, 'banner(s)');
+            
+            // Check localStorage AFTER fetching banners
+            // Only hide if there are banners AND user has clicked close
+            if (data.length > 0) {
+              const hideUntil = localStorage.getItem('hideTickerUntil');
+              if (hideUntil && Date.now() < parseInt(hideUntil, 10)) {
+                setIsHidden(true);
+              } else {
+                setIsHidden(false);
+                // Clear old localStorage entry if expired
+                if (hideUntil) {
+                  localStorage.removeItem('hideTickerUntil');
+                }
+              }
+            }
           } else {
             console.error('Invalid banner data format:', data);
             setBanners([]);
@@ -66,7 +71,9 @@ export default function TopTickerBanner() {
   }, []);
 
   const handleClose = () => {
-    localStorage.setItem('hideTickerUntil', (Date.now() + HIDE_DURATION).toString());
+    const hideUntil = Date.now() + HIDE_DURATION;
+    localStorage.setItem('hideTickerUntil', hideUntil.toString());
+    console.log('Banner hidden until:', new Date(hideUntil).toLocaleString());
     setIsHidden(true);
   };
 

@@ -129,10 +129,17 @@ export function BannerFormDialog({ isOpen, onOpenChange, banner, onSave }: Banne
     const method = isEditing ? 'PUT' : 'POST';
 
     try {
+      // Convert dates to ISO strings for JSON serialization
+      const payload = {
+        ...data,
+        startsAt: data.startsAt ? data.startsAt.toISOString() : undefined,
+        endsAt: data.endsAt ? data.endsAt.toISOString() : undefined,
+      };
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {

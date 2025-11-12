@@ -66,7 +66,7 @@ const Sidebar = () => {
             <div className="flex h-16 items-center border-b px-6">
                 <Link href="/" className="flex items-center gap-2 font-semibold">
                 <Icons.logo />
-                <span className="">NOVA</span>
+                <span className="">CROVA</span>
                 </Link>
             </div>
             <div className="flex-1 overflow-auto py-2">
@@ -107,12 +107,12 @@ export default function AdminLayout({
 }) {
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-        <div className="hidden border-r bg-muted/40 md:block">
+    <div className="fixed inset-0 grid h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] overflow-hidden">
+        <div className="hidden border-r bg-muted/40 md:block h-screen overflow-y-auto">
             <Sidebar />
         </div>
-        <div className="flex flex-col">
-            <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-6 md:hidden">
+        <div className="flex flex-col h-screen overflow-hidden">
+            <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-6 md:hidden flex-shrink-0">
                  <Sheet>
                     <SheetTrigger asChild>
                         <Button size="icon" variant="outline">
@@ -120,7 +120,7 @@ export default function AdminLayout({
                         <span className="sr-only">Toggle Navigation</span>
                         </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-full max-w-xs p-0">
+                    <SheetContent side="left" className="w-full max-w-xs p-0 h-screen">
                        <SheetHeader>
                           <SheetTitle className="sr-only">Admin Menu</SheetTitle>
                        </SheetHeader>
@@ -131,7 +131,7 @@ export default function AdminLayout({
                     Admin Dashboard
                  </div>
             </header>
-            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-8 bg-muted/40 overflow-auto">
+            <main className="flex-1 flex flex-col gap-4 p-4 lg:gap-6 lg:p-8 bg-muted/40 overflow-y-auto">
                 {children}
             </main>
         </div>

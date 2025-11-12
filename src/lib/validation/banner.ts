@@ -10,8 +10,8 @@ export const bannerSchema = z.object({
   priority: z.coerce.number().int().default(0),
   textColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a valid hex color.').optional().or(z.literal('')),
   backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a valid hex color.').optional().or(z.literal('')),
-  startsAt: z.date().optional(),
-  endsAt: z.date().optional(),
+  startsAt: z.union([z.date(), z.string().datetime()]).optional().transform((val) => val ? new Date(val) : undefined),
+  endsAt: z.union([z.date(), z.string().datetime()]).optional().transform((val) => val ? new Date(val) : undefined),
 });
 
 export type BannerFormValues = z.infer<typeof bannerSchema>;

@@ -70,7 +70,7 @@ export default function Header() {
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="hidden items-center space-x-2 md:flex">
             <Icons.logo />
-            <span className="sr-only">NOVA</span>
+            <span className="sr-only">CROVA</span>
           </Link>
           <DesktopNav />
         </div>
@@ -85,7 +85,7 @@ export default function Header() {
               >
                 <Link href="/" className="items-center space-x-2">
                     <Icons.logo />
-                    <span className="sr-only">NOVA</span>
+                    <span className="sr-only">CROVA</span>
                 </Link>
               </motion.div>
             )}

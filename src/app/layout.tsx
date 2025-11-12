@@ -3,19 +3,15 @@ import type { Metadata } from 'next';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import { CartProvider } from '@/contexts/cart-context';
 import { WishlistProvider } from '@/contexts/wishlist-context';
-import Header from '@/components/layout/header';
-import Footer from '@/components/layout/footer';
-import MobileBottomNav from '@/components/layout/mobile-nav';
+import { ConditionalLayout } from '@/components/layout/conditional-layout';
 import { cn } from '@/lib/utils';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import AuthProvider from '@/contexts/auth-provider';
 import Script from 'next/script';
-import { Suspense } from 'react';
-import TopTickerBanner from '@/components/ui/TopTickerBanner';
 
 export const metadata: Metadata = {
-  title: 'NOVA - Modern Fashion',
+  title: 'CROVA - Modern Fashion',
   description: 'A modern e-commerce fashion store.',
 };
 
@@ -35,17 +31,9 @@ export default function RootLayout({
         <AuthProvider>
           <WishlistProvider>
             <CartProvider>
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <TopTickerBanner />
-                <main className="flex-grow container" style={{ marginTop: 'calc(4rem + var(--banner-height, 0px))' }}>
-                  {children}
-                </main>
-                <Footer />
-              </div>
-              <Suspense fallback={null}>
-                <MobileBottomNav />
-              </Suspense>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
               <Toaster />
               <SonnerToaster />
             </CartProvider>

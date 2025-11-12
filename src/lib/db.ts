@@ -7,12 +7,23 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-export const prisma =
-  global.prisma ||
-  new PrismaClient({
+// Prevent multiple instances of Prisma Client in development
+// https://www.prisma.io/docs/guides/performance-and-optimization/connection-management
+const prismaClientSingleton = () => {
+  return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
+};
+
+export const prisma = global.prisma ?? prismaClientSingleton();
 
 if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;
+}
+
+// Gracefully shutdown Prisma Client on process termination
+if (process.env.NODE_ENV !== 'production') {
+  process.on('beforeExit', async () => {
+    await prisma.$disconnect();
+  });
 }

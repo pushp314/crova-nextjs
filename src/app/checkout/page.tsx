@@ -110,7 +110,7 @@ export default function CheckoutPage() {
             key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
             amount: amount.toString(),
             currency: currency,
-            name: 'NOVA',
+            name: 'CROVA',
             description: 'Fashion Store Purchase',
             order_id: order_id,
             handler: function (response: any) {
