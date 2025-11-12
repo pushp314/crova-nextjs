@@ -34,12 +34,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Product, Category } from "@/lib/types";
-import { productSchema } from "@/lib/validations";
+import { productFormSchema } from "@/lib/validations";
 import { Switch } from "@/components/ui/switch";
 import { ImageUploadZone } from "@/components/admin/ImageUploadZone";
 import { Separator } from "@/components/ui/separator";
 
-type ProductFormValues = z.infer<typeof productSchema>;
+type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductFormDialogProps {
   isOpen: boolean;
@@ -89,7 +89,7 @@ export function ProductFormDialog({
   const isEditing = !!product;
 
   const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -97,8 +97,8 @@ export function ProductFormDialog({
       stock: 0,
       categoryId: "",
       images: [],
-      sizes: [],
-      colors: [],
+      sizes: [{value: ""}],
+      colors: [{value: ""}],
       featured: false,
     },
   });
@@ -134,7 +134,7 @@ export function ProductFormDialog({
         price: 0,
         stock: 0,
         categoryId: "",
-        images: [{value: ""}],
+        images: [],
         sizes: [{value: ""}],
         colors: [{value: ""}],
         featured: false,
@@ -143,6 +143,7 @@ export function ProductFormDialog({
   }, [isOpen, product, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
+    console.log('Form submitted with data:', data);
     setIsLoading(true);
     const url = isEditing ? `/api/products/${product?.id}` : '/api/products';
     const method = isEditing ? 'PUT' : 'POST';
@@ -155,23 +156,63 @@ export function ProductFormDialog({
         colors: data.colors.map(c => c.value).filter(Boolean),
       }
 
+      console.log('Payload to send:', payload);
+
+      // Check if there are any images
+      if (payload.images.length === 0) {
+        toast.error("Validation Error", { description: "Please upload at least one product image" });
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if there are any sizes
+      if (payload.sizes.length === 0) {
+        toast.error("Validation Error", { description: "Please add at least one size" });
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if there are any colors
+      if (payload.colors.length === 0) {
+        toast.error("Validation Error", { description: "Please add at least one color" });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Sending request to:', url, 'with method:', method);
+      toast.loading(`${isEditing ? 'Updating' : 'Creating'} product...`, { id: 'product-save' });
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
+      console.log('Response status:', res.status);
+
       if (!res.ok) {
         const errorData = await res.json();
+        console.error('Error response:', errorData);
+        toast.dismiss('product-save');
         throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'create'} product.`);
       }
 
       const savedProduct = await res.json();
+      console.log('Product saved successfully:', savedProduct);
+      
+      toast.dismiss('product-save');
+      toast.success(`Product ${isEditing ? 'updated' : 'created'} successfully!`, {
+        description: `${savedProduct.name} has been ${isEditing ? 'updated' : 'added to your store'}.`
+      });
+      
       onSave(savedProduct);
-      toast.success(`Product ${isEditing ? 'updated' : 'created'} successfully!`);
       onOpenChange(false);
     } catch (error: any) {
-      toast.error("Operation Failed", { description: error.message });
+      console.error('Error in onSubmit:', error);
+      toast.dismiss('product-save');
+      toast.error("Operation Failed", { 
+        description: error.message || 'Something went wrong. Please try again.' 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -217,7 +258,18 @@ export function ProductFormDialog({
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Price</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} /></FormControl>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        step="0.01" 
+                        {...field} 
+                        value={field.value || ''} 
+                        onChange={e => {
+                          const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }} 
+                      />
+                    </FormControl>
                     <FormMessage />
                     </FormItem>
                 )}
@@ -228,7 +280,17 @@ export function ProductFormDialog({
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Stock</FormLabel>
-                    <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} /></FormControl>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        {...field} 
+                        value={field.value || ''} 
+                        onChange={e => {
+                          const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }} 
+                      />
+                    </FormControl>
                     <FormMessage />
                     </FormItem>
                 )}

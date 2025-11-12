@@ -30,11 +30,9 @@ export async function GET(req: Request) {
                 email: true,
                 image: true,
                 role: true,
-                createdAt: true,
-                updatedAt: true,
             },
             orderBy: {
-                createdAt: 'desc',
+                email: 'asc',
             }
         }),
         prisma.user.count({ where: whereClause })

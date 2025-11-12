@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { UserProfile } from '@/lib/types';
-import { format } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -85,7 +84,6 @@ export default function AdminUsersPage() {
                 <TableHead>Customer</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Joined</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,7 +102,6 @@ export default function AdminUsersPage() {
                           {user.role.toLowerCase()}
                       </Badge>
                   </TableCell>
-                  <TableCell>{format(new Date(user.createdAt), 'PPP')}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

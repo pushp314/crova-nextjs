@@ -5,10 +5,11 @@ import { z } from 'zod';
 // ============================================================
 // Product Schemas
 // ============================================================
+// Schema for form data (used in React Hook Form with arrays of objects)
 const stringArray = z.array(z.object({ value: z.string().min(1) }));
 const stringUrlArray = z.array(z.object({ value: z.string().url() }));
 
-export const productSchema = z.object({
+export const productFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
@@ -17,6 +18,19 @@ export const productSchema = z.object({
   categoryId: z.string().min(1, 'Category is required.'),
   sizes: stringArray.min(1, 'At least one size is required.'),
   colors: stringArray.min(1, 'At least one color is required.'),
+  featured: z.boolean().default(false),
+});
+
+// Schema for API payload (used in API routes with arrays of strings)
+export const productSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters.'),
+  description: z.string().min(10, 'Description must be at least 10 characters.'),
+  price: z.coerce.number().positive('Price must be a positive number.'),
+  images: z.array(z.string().url()).min(1, 'At least one image URL is required.'),
+  stock: z.coerce.number().int().min(0, 'Stock cannot be negative.'),
+  categoryId: z.string().min(1, 'Category is required.'),
+  sizes: z.array(z.string().min(1)).min(1, 'At least one size is required.'),
+  colors: z.array(z.string().min(1)).min(1, 'At least one color is required.'),
   featured: z.boolean().default(false),
 });
 
