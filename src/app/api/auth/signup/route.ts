@@ -15,23 +15,28 @@ const signupFormSchema = z.object({
 async function sendVerificationEmail(email: string, token: string) {
     const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
     const html = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2>Welcome to NOVA!</h2>
-            <p>Thanks for signing up. Please verify your email address by clicking the link below:</p>
-            <p>
-                <a href="${verificationUrl}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-                    Verify Your Email
-                </a>
-            </p>
-            <p>If you did not sign up for an account, please ignore this email.</p>
-            <hr />
-            <p style="font-size: 0.8em; color: #888;">This link will expire in 24 hours.</p>
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; background-color: #FAF0E6; padding: 20px; border-radius: 8px;">
+            <div style="background: linear-gradient(135deg, #FFDAB9 0%, #F08080 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h2 style="color: #ffffff; margin: 0; font-size: 28px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Welcome to Crova! ✨</h2>
+            </div>
+            <div style="background-color: #ffffff; padding: 30px; border-radius: 0 0 8px 8px;">
+                <p style="font-size: 16px; color: #333;">Thanks for signing up with Crova!</p>
+                <p style="font-size: 16px; color: #555;">Please verify your email address by clicking the button below to get started:</p>
+                <p style="text-align: center; margin: 30px 0;">
+                    <a href="${verificationUrl}" style="background-color: #F08080; color: #fff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px rgba(240, 128, 128, 0.3);">
+                        Verify Your Email 📧
+                    </a>
+                </p>
+                <p style="font-size: 14px; color: #777;">If you did not sign up for an account, please ignore this email.</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                <p style="font-size: 12px; color: #999;">This link will expire in 24 hours.</p>
+            </div>
         </div>
     `;
 
     await sendEmail({
         to: email,
-        subject: 'Verify your NOVA account',
+        subject: '✨ Verify your Crova account',
         html,
     });
 }

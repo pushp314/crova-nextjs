@@ -1,9 +1,11 @@
+/* FILE: src/app/api/products/[id]/route.ts */
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/rbac';
-import { updateProductSchema } from '@/lib/validations';
+// Import the correct schema for API updates
+import { productUpdateSchema } from '@/lib/validation/product';
 import { z } from 'zod';
 
 interface RouteParams {
@@ -66,11 +68,13 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     const { id } = params;
     const body = await req.json();
-    const data = updateProductSchema.parse(body);
+    
+    // Use productUpdateSchema, which expects arrays of strings
+    const data = productUpdateSchema.parse(body);
 
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data,
+      data, // Pass data directly, as it matches the schema
       include: {
         category: true
       }
@@ -79,6 +83,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
     return NextResponse.json(updatedProduct);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Zod validation error on PUT /api/products/[id]:', error.errors);
       return NextResponse.json({ message: error.errors[0].message }, { status: 400 });
     }
      if (error instanceof Error && 'code' in error && error.code === 'P2025') {

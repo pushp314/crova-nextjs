@@ -7,12 +7,14 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import type { Product } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getProductImageUrl } from '@/lib/image-helper';
 
 type ProductCardProps = {
   product: Product;
 };
 
 export default function ProductCard({ product }: ProductCardProps) {
+    const imageUrl = getProductImageUrl(product.images[0]);
     const placeholder = PlaceHolderImages.find(p => p.imageUrl === product.images[0]);
     const imageHint = placeholder ? placeholder.imageHint : 'fashion product';
 
@@ -26,7 +28,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <Card className="h-full overflow-hidden border-none bg-transparent shadow-none transition-shadow duration-300 group-hover:shadow-xl rounded-lg">
           <div className="relative aspect-[3/4] w-full overflow-hidden">
             <Image
-              src={product.images[0]}
+              src={imageUrl}
               alt={product.name}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"

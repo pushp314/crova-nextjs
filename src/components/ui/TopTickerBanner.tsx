@@ -9,10 +9,22 @@ import { type PromotionBanner } from '@/lib/types';
 import './TopTickerBanner.css';
 
 const HIDE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+const BANNER_HEIGHT = 40; // Height of the banner in pixels
 
 export default function TopTickerBanner() {
   const [banners, setBanners] = useState<PromotionBanner[]>([]);
   const [isHidden, setIsHidden] = useState(true);
+
+  // Update CSS variable for main content margin
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const shouldShow = !isHidden && banners.length > 0;
+      document.documentElement.style.setProperty(
+        '--banner-height',
+        shouldShow ? `${BANNER_HEIGHT}px` : '0px'
+      );
+    }
+  }, [isHidden, banners.length]);
 
   useEffect(() => {
     const hideUntil = localStorage.getItem('hideTickerUntil');
@@ -69,7 +81,7 @@ export default function TopTickerBanner() {
 
   return (
     <div
-      className="group/ticker relative w-full overflow-hidden text-sm"
+      className="group/ticker fixed top-16 left-0 right-0 z-40 w-full overflow-hidden text-sm transition-all duration-300 backdrop-blur supports-[backdrop-filter]:bg-opacity-95"
       style={{
         backgroundColor: firstBanner.backgroundColor || 'hsl(var(--primary))',
         color: firstBanner.textColor || 'hsl(var(--primary-foreground))',

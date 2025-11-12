@@ -35,10 +35,12 @@ export default function RootLayout({
         <AuthProvider>
           <WishlistProvider>
             <CartProvider>
-              <TopTickerBanner />
               <div className="flex min-h-screen flex-col">
                 <Header />
-                <main className="flex-grow container mt-16">{children}</main>
+                <TopTickerBanner />
+                <main className="flex-grow container" style={{ marginTop: 'calc(4rem + var(--banner-height, 0px))' }}>
+                  {children}
+                </main>
                 <Footer />
               </div>
               <Suspense fallback={null}>

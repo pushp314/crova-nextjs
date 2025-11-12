@@ -2,6 +2,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { getProductImageUrl } from '@/lib/image-helper';
 import {
   Table,
   TableBody,
@@ -169,7 +170,7 @@ export default function AdminProductsPage() {
                       alt={product.name}
                       className="aspect-square rounded-md object-cover"
                       height="64"
-                      src={product.images[0] || '/placeholder.svg'}
+                      src={getProductImageUrl(product.images[0])}
                       width="64"
                     />
                   </TableCell>

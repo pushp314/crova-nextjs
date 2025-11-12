@@ -7,13 +7,14 @@ import { z } from 'zod';
 // ============================================================
 // Schema for form data (used in React Hook Form with arrays of objects)
 const stringArray = z.array(z.object({ value: z.string().min(1) }));
-const stringUrlArray = z.array(z.object({ value: z.string().url() }));
+// Changed from stringUrlArray to accept any string (filenames, not URLs)
+const stringImageArray = z.array(z.object({ value: z.string().min(1) }));
 
 export const productFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
-  images: stringUrlArray.min(1, 'At least one image URL is required.'),
+  images: stringImageArray.min(1, 'At least one image is required.'),
   stock: z.coerce.number().int().min(0, 'Stock cannot be negative.'),
   categoryId: z.string().min(1, 'Category is required.'),
   sizes: stringArray.min(1, 'At least one size is required.'),
@@ -22,11 +23,12 @@ export const productFormSchema = z.object({
 });
 
 // Schema for API payload (used in API routes with arrays of strings)
+// Database stores only filenames, not full URLs
 export const productSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   description: z.string().min(10, 'Description must be at least 10 characters.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
-  images: z.array(z.string().url()).min(1, 'At least one image URL is required.'),
+  images: z.array(z.string().min(1)).min(1, 'At least one image is required.'),
   stock: z.coerce.number().int().min(0, 'Stock cannot be negative.'),
   categoryId: z.string().min(1, 'Category is required.'),
   sizes: z.array(z.string().min(1)).min(1, 'At least one size is required.'),
@@ -38,7 +40,7 @@ export const updateProductSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').optional(),
   description: z.string().min(10, 'Description must be at least 10 characters.').optional(),
   price: z.coerce.number().positive('Price must be a positive number.').optional(),
-  images: z.array(z.string().url()).min(1, 'At least one image URL is required.').optional(),
+  images: z.array(z.string().min(1)).min(1, 'At least one image is required.').optional(),
   stock: z.coerce.number().int().min(0, 'Stock cannot be negative.').optional(),
   categoryId: z.string().min(1, 'Category is required.').optional(),
   sizes: z.array(z.string().min(1)).min(1, 'At least one size is required.').optional(),

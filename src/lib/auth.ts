@@ -89,8 +89,20 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'google' && !dbUser.emailVerified) {
         await prisma.user.update({
           where: { id: dbUser.id },
-          data: { emailVerified: new Date() }
+          data: { 
+            emailVerified: new Date(),
+            welcomeEmailSent: true, // Mark welcome email as sent
+          }
         });
+        
+        // Send welcome email for first-time Google sign-ins
+        try {
+          const { sendWelcomeEmail } = await import('./mail');
+          const firstName = dbUser.name?.split(' ')[0] || 'there';
+          await sendWelcomeEmail(dbUser.email!, firstName);
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+        }
       }
 
       token.id = dbUser.id;

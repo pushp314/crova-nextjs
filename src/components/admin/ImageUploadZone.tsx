@@ -86,10 +86,10 @@ export function ImageUploadZone({
 
         const data = await response.json();
         
-        if (data.urls && Array.isArray(data.urls)) {
-          const newImages = [...images, ...data.urls];
+        if (data.filenames && Array.isArray(data.filenames)) {
+          const newImages = [...images, ...data.filenames];
           onChange(newImages);
-          toast.success(`Successfully uploaded ${data.urls.length} image(s)`);
+          toast.success(`Successfully uploaded ${data.filenames.length} image(s)`);
         }
       } catch (error: any) {
         console.error('Upload error:', error);
@@ -250,18 +250,24 @@ export function ImageUploadZone({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {images.map((image, index) => (
-              <div
-                key={`${image}-${index}`}
-                className="relative group aspect-square rounded-lg border overflow-hidden bg-muted"
-              >
-                <Image
-                  src={image}
-                  alt={`Product image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 640px) 50vw, 33vw"
-                />
+            {images.map((image, index) => {
+              // If image is just a filename, prepend the path
+              const imageSrc = image.startsWith('/') || image.startsWith('http') 
+                ? image 
+                : `/uploads/products/${image}`;
+              
+              return (
+                <div
+                  key={`${image}-${index}`}
+                  className="relative group aspect-square rounded-lg border overflow-hidden bg-muted"
+                >
+                  <Image
+                    src={imageSrc}
+                    alt={`Product image ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 50vw, 33vw"
+                  />
                 
                 {/* Primary Badge */}
                 {index === 0 && (
@@ -279,15 +285,16 @@ export function ImageUploadZone({
                   onClick={() => handleRemoveImage(index)}
                   disabled={disabled}
                 >
-                  <X className="h-4 w-4" />
-                </Button>
+                    <X className="h-4 w-4" />
+                  </Button>
 
-                {/* Image Index */}
-                <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                  {index + 1}
+                  {/* Image Index */}
+                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                    {index + 1}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <p className="text-xs text-muted-foreground">

@@ -1,3 +1,4 @@
+/* FILE: src/components/admin/product-form-dialog.tsx */
 
 "use client";
 
@@ -35,7 +36,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Product, Category } from "@/lib/types";
-import { productFormSchema } from "@/lib/validations";
+// Import from the correct validation file
+import { productFormSchema } from "@/lib/validation/product";
 import { Switch } from "@/components/ui/switch";
 import { ImageUploadZone } from "@/components/admin/ImageUploadZone";
 import { Separator } from "@/components/ui/separator";

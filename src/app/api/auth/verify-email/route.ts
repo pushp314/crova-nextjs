@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { sendWelcomeEmail } from '@/lib/mail';
 
 export async function GET(req: Request) {
     try {
@@ -34,12 +35,24 @@ export async function GET(req: Request) {
         await prisma.$transaction(async (tx) => {
             await tx.user.update({
                 where: { id: user.id },
-                data: { emailVerified: new Date() },
+                data: { 
+                  emailVerified: new Date(),
+                  welcomeEmailSent: true, // Mark welcome email as sent
+                },
             });
             await tx.verificationToken.delete({
                 where: { id: verificationToken.id },
             });
         });
+        
+        // Send welcome email after successful verification
+        try {
+          const firstName = user.name?.split(' ')[0] || 'there';
+          await sendWelcomeEmail(user.email!, firstName);
+        } catch (emailError) {
+          // Log error but don't fail the verification
+          console.error('Failed to send welcome email:', emailError);
+        }
         
         // Redirect to a success page or login page
         const url = req.url.replace('/api/auth/verify-email', '/login');

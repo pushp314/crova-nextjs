@@ -1,10 +1,12 @@
+/* FILE: src/app/api/products/route.ts */
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/rbac';
 import { z } from 'zod';
-import { productFormSchema } from '@/lib/validations';
+// Import the correct schema for API creation
+import { productCreateSchema } from '@/lib/validation/product';
 
 export async function GET(req: Request) {
   try {
@@ -40,20 +42,21 @@ export async function POST(req: Request) {
     requireRole(session, ['ADMIN']);
 
     const body = await req.json();
-    // Use the form schema for validation as it matches the frontend structure
-    const data = productFormSchema.parse(body);
+    
+    // Use productCreateSchema, which expects arrays of strings
+    const data = productCreateSchema.parse(body);
 
-    // Map the array of objects to an array of strings before saving
+    // No mapping is needed; data is already in the correct format
     const product = await prisma.product.create({
       data: {
         name: data.name,
         description: data.description,
         price: data.price,
-        images: data.images.map(img => img.value),
+        images: data.images, // Directly use the string array
         stock: data.stock,
         categoryId: data.categoryId,
-        sizes: data.sizes.map(s => s.value),
-        colors: data.colors.map(c => c.value),
+        sizes: data.sizes, // Directly use the string array
+        colors: data.colors, // Directly use the string array
         featured: data.featured,
       },
       include: {

@@ -19,10 +19,8 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 // Configure storage for multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const now = new Date();
-    const year = now.getFullYear().toString();
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const destination = path.join(UPLOAD_DIR, year, month);
+    // Store directly in /public/uploads/products/ (flat structure)
+    const destination = UPLOAD_DIR;
     
     // Ensure directory exists
     if (!fs.existsSync(destination)) {
@@ -120,11 +118,8 @@ async function parseFormData(req: Request): Promise<{ files: Express.Multer.File
           return reject(new Error(`File ${file.name} is too large. Maximum size is 3MB.`));
         }
 
-        // Create destination path
-        const now = new Date();
-        const year = now.getFullYear().toString();
-        const month = (now.getMonth() + 1).toString().padStart(2, '0');
-        const destination = path.join(UPLOAD_DIR, year, month);
+        // Store directly in /public/uploads/products/ (flat structure)
+        const destination = UPLOAD_DIR;
         
         if (!fs.existsSync(destination)) {
           fs.mkdirSync(destination, { recursive: true });
@@ -204,17 +199,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Generate public URLs
-    const urls = files.map(file => {
-      // Remove 'public' from path to create public URL
-      return file.path.replace(/^public/, '').replace(/\\/g, '/');
-    });
+    // 3. Return only filenames (not full paths)
+    const filenames = files.map(file => file.filename);
 
     return NextResponse.json(
       { 
-        urls,
-        count: urls.length,
-        message: `Successfully uploaded ${urls.length} image(s)`,
+        filenames,
+        count: filenames.length,
+        message: `Successfully uploaded ${filenames.length} image(s)`,
       }, 
       { status: 200 }
     );
