@@ -91,7 +91,6 @@ export const authOptions: NextAuthOptions = {
           where: { id: dbUser.id },
           data: { 
             emailVerified: new Date(),
-            welcomeEmailSent: true, // Mark welcome email as sent
           }
         });
         

@@ -49,10 +49,10 @@ model User {
   name                String?
   email               String?               @unique
   emailVerified       DateTime?
+  welcomeEmailSent    Boolean               @default(false)
   image               String?
   password            String?
   role                UserRole              @default(USER)
-  welcomeEmailSent    Boolean               @default(false)
   accounts            Account[]
   sessions            Session[]
   orders              Order[]

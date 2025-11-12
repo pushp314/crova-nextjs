@@ -1,65 +1,31 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { requireRole } from '@/lib/rbac';
-import multer from 'multer';
+import formidable, { File as FormidableFile, Fields, Files } from 'formidable';
+import { promises as fs } from 'fs';
 import path from 'path';
-import fs from 'fs';
 import { Readable } from 'stream';
 
-const UPLOAD_DIR = './public/uploads/products';
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+// Configuration
+const BASE_UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'products');
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_FILES = 6;
-const ALLOWED_TYPES = /jpeg|jpg|png|webp/;
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 
-// Ensure the base upload directory exists
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// Ensure upload directory exists
+async function ensureUploadDir(dirPath: string) {
+  try {
+    await fs.access(dirPath);
+  } catch {
+    await fs.mkdir(dirPath, { recursive: true });
+  }
 }
 
-// Configure storage for multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Store directly in /public/uploads/products/ (flat structure)
-    const destination = UPLOAD_DIR;
-    
-    // Ensure directory exists
-    if (!fs.existsSync(destination)) {
-      fs.mkdirSync(destination, { recursive: true });
-    }
-    
-    cb(null, destination);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const sanitizedOriginalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const extension = path.extname(sanitizedOriginalName);
-    const basename = path.basename(sanitizedOriginalName, extension);
-    cb(null, `${basename}-${uniqueSuffix}${extension}`);
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: { 
-    fileSize: MAX_FILE_SIZE,
-    files: MAX_FILES,
-  },
-  fileFilter: (req, file, cb) => {
-    const mimetype = ALLOWED_TYPES.test(file.mimetype);
-    const extname = ALLOWED_TYPES.test(path.extname(file.originalname).toLowerCase());
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    
-    cb(new Error('Invalid file type. Only jpeg, jpg, png, and webp images are allowed.'));
-  },
-});
-
-// Helper to convert Web ReadableStream to Node.js Readable
-async function webStreamToNodeStream(webStream: ReadableStream<Uint8Array>): Promise<Readable> {
+// Convert Web Request body to Node.js Readable stream
+function webStreamToNodeStream(webStream: ReadableStream<Uint8Array>): Readable {
   const reader = webStream.getReader();
-  const nodeStream = new Readable({
+  return new Readable({
     async read() {
       try {
         const { done, value } = await reader.read();
@@ -73,88 +39,47 @@ async function webStreamToNodeStream(webStream: ReadableStream<Uint8Array>): Pro
       }
     },
   });
-  return nodeStream;
 }
 
-// Helper to parse multipart form data using multer
-async function parseFormData(req: Request): Promise<{ files: Express.Multer.File[] }> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const contentType = req.headers.get('content-type');
-      if (!contentType || !contentType.includes('multipart/form-data')) {
-        return reject(new Error('Content-Type must be multipart/form-data'));
-      }
+// Parse multipart form data with formidable
+async function parseProductImages(
+  req: NextRequest
+): Promise<{ fields: Fields; files: Files }> {
+  await ensureUploadDir(BASE_UPLOAD_DIR);
 
-      const formData = await req.formData();
-      const files: Express.Multer.File[] = [];
+  const form = formidable({
+    uploadDir: BASE_UPLOAD_DIR,
+    keepExtensions: true,
+    maxFileSize: MAX_FILE_SIZE,
+    maxFiles: MAX_FILES,
+    multiples: true,
+    filename: (name, ext, part) => {
+      // Generate unique filename: productname-timestamp-random.ext
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const sanitizedName = part.originalFilename
+        ?.replace(/[^a-zA-Z0-9.-]/g, '_')
+        .replace(/_{2,}/g, '_') || 'product';
       
-      // Get all files from formData
-      const fileEntries = Array.from(formData.entries()).filter(([key, value]) => 
-        value instanceof File
-      );
+      const extension = path.extname(sanitizedName) || ext;
+      const basename = path.basename(sanitizedName, path.extname(sanitizedName));
+      
+      return `${basename}-${uniqueSuffix}${extension}`;
+    },
+    filter: (part) => {
+      // Validate MIME type during upload
+      const mimeType = part.mimetype || '';
+      return ALLOWED_TYPES.includes(mimeType);
+    },
+  });
 
-      if (fileEntries.length === 0) {
-        return reject(new Error('No files provided'));
-      }
+  // Convert Web ReadableStream to Node.js stream
+  const nodeStream = webStreamToNodeStream(req.body as ReadableStream<Uint8Array>);
 
-      if (fileEntries.length > MAX_FILES) {
-        return reject(new Error(`Maximum ${MAX_FILES} files allowed`));
-      }
-
-      // Process each file
-      for (const [fieldname, file] of fileEntries) {
-        if (!(file instanceof File)) continue;
-
-        // Validate file type
-        const ext = path.extname(file.name).toLowerCase();
-        const mimetype = file.type;
-        
-        if (!ALLOWED_TYPES.test(mimetype) || !ALLOWED_TYPES.test(ext)) {
-          return reject(new Error(`Invalid file type for ${file.name}. Only jpeg, jpg, png, and webp are allowed.`));
-        }
-
-        // Validate file size
-        if (file.size > MAX_FILE_SIZE) {
-          return reject(new Error(`File ${file.name} is too large. Maximum size is 3MB.`));
-        }
-
-        // Store directly in /public/uploads/products/ (flat structure)
-        const destination = UPLOAD_DIR;
-        
-        if (!fs.existsSync(destination)) {
-          fs.mkdirSync(destination, { recursive: true });
-        }
-
-        // Generate unique filename
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const sanitizedOriginalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const extension = path.extname(sanitizedOriginalName);
-        const basename = path.basename(sanitizedOriginalName, extension);
-        const filename = `${basename}-${uniqueSuffix}${extension}`;
-        const filepath = path.join(destination, filename);
-
-        // Save file
-        const buffer = Buffer.from(await file.arrayBuffer());
-        fs.writeFileSync(filepath, buffer);
-
-        // Create multer-compatible file object
-        files.push({
-          fieldname,
-          originalname: file.name,
-          encoding: '7bit',
-          mimetype: file.type,
-          size: file.size,
-          destination,
-          filename,
-          path: filepath,
-          buffer,
-        } as Express.Multer.File);
-      }
-
-      resolve({ files });
-    } catch (error) {
-      reject(error);
-    }
+  return new Promise((resolve, reject) => {
+    form.parse(nodeStream as any, (err, fields, files) => {
+      if (err) reject(err);
+      else resolve({ fields, files });
+    });
   });
 }
 
@@ -162,19 +87,20 @@ async function parseFormData(req: Request): Promise<{ files: Express.Multer.File
  * POST /api/upload/product
  * 
  * Upload multiple product images (up to 6)
+ * Returns filenames only (not full paths) for database storage
  * 
  * @access ADMIN only
  * @body multipart/form-data with files
- * @returns { urls: string[] } - Array of uploaded image URLs
+ * @returns { filenames: string[], count: number } - Array of uploaded image filenames
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate and authorize
     const session = await getCurrentUser();
     
     if (!session?.user?.id) {
       return NextResponse.json(
-        { message: 'Unauthorized. Please login.' }, 
+        { error: 'Unauthorized', message: 'Please login to upload images.' }, 
         { status: 401 }
       );
     }
@@ -184,29 +110,118 @@ export async function POST(req: Request) {
       requireRole(session, ['ADMIN']);
     } catch (error) {
       return NextResponse.json(
-        { message: 'Forbidden. Admin access required.' }, 
+        { error: 'Forbidden', message: 'Admin access required.' }, 
         { status: 403 }
       );
     }
 
-    // 2. Parse multipart form data
-    const { files } = await parseFormData(req);
-
-    if (!files || files.length === 0) {
+    // 2. Verify content type
+    const contentType = req.headers.get('content-type') || '';
+    if (!contentType.includes('multipart/form-data')) {
       return NextResponse.json(
-        { message: 'No files uploaded.' }, 
+        { error: 'Invalid Content-Type', message: 'Must be multipart/form-data' },
         { status: 400 }
       );
     }
 
-    // 3. Return only filenames (not full paths)
-    const filenames = files.map(file => file.filename);
+    // 3. Parse multipart form data
+    const { files } = await parseProductImages(req);
 
+    // 4. Extract uploaded files
+    const uploadedFiles = files.file || files.files || files.images || [];
+    const fileArray = Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles];
+
+    if (fileArray.length === 0) {
+      return NextResponse.json(
+        { error: 'No Files', message: 'No files were uploaded.' }, 
+        { status: 400 }
+      );
+    }
+
+    if (fileArray.length > MAX_FILES) {
+      // Delete all uploaded files
+      for (const file of fileArray) {
+        if (file && typeof file === 'object') {
+          const formFile = file as FormidableFile;
+          try {
+            await fs.unlink(formFile.filepath);
+          } catch {}
+        }
+      }
+
+      return NextResponse.json(
+        { error: 'Too Many Files', message: `Maximum ${MAX_FILES} files allowed.` },
+        { status: 400 }
+      );
+    }
+
+    // 5. Validate and process files
+    const validatedFilenames: string[] = [];
+
+    for (const file of fileArray) {
+      if (!file || typeof file !== 'object') continue;
+
+      const formFile = file as FormidableFile;
+
+      // Validate file extension
+      const ext = path.extname(formFile.originalFilename || '').toLowerCase();
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        // Delete invalid file
+        try {
+          await fs.unlink(formFile.filepath);
+        } catch {}
+
+        // Delete already processed files
+        for (const filename of validatedFilenames) {
+          try {
+            await fs.unlink(path.join(BASE_UPLOAD_DIR, filename));
+          } catch {}
+        }
+
+        return NextResponse.json(
+          {
+            error: 'Invalid File Type',
+            message: `File type ${ext} not allowed. Only JPG, PNG, and WebP are supported.`,
+          },
+          { status: 415 }
+        );
+      }
+
+      // Validate file size
+      if (formFile.size > MAX_FILE_SIZE) {
+        // Delete oversized file
+        try {
+          await fs.unlink(formFile.filepath);
+        } catch {}
+
+        // Delete already processed files
+        for (const filename of validatedFilenames) {
+          try {
+            await fs.unlink(path.join(BASE_UPLOAD_DIR, filename));
+          } catch {}
+        }
+
+        return NextResponse.json(
+          {
+            error: 'File Too Large',
+            message: `File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit.`,
+          },
+          { status: 413 }
+        );
+      }
+
+      // Extract just the filename (not full path)
+      const filename = path.basename(formFile.filepath);
+      validatedFilenames.push(filename);
+    }
+
+    // 6. Return filenames only (frontend will construct full paths)
     return NextResponse.json(
       { 
-        filenames,
-        count: filenames.length,
-        message: `Successfully uploaded ${filenames.length} image(s)`,
+        filenames: validatedFilenames,
+        count: validatedFilenames.length,
+        success: true,
+        message: `Successfully uploaded ${validatedFilenames.length} image(s).`,
       }, 
       { status: 200 }
     );
@@ -214,45 +229,60 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[PRODUCT_UPLOAD_ERROR]', error);
 
-    // Handle specific errors
-    if (error.message.includes('Content-Type must be multipart/form-data')) {
+    // Handle specific formidable errors
+    if (error.message?.includes('maxFileSize') || error.code === 'LIMIT_FILE_SIZE') {
       return NextResponse.json(
-        { message: 'Invalid content type. Must be multipart/form-data.' }, 
-        { status: 400 }
-      );
-    }
-
-    if (error.message.includes('No files provided')) {
-      return NextResponse.json(
-        { message: 'No files provided in request.' }, 
-        { status: 400 }
-      );
-    }
-
-    if (error.message.includes('Maximum')) {
-      return NextResponse.json(
-        { message: error.message }, 
-        { status: 400 }
-      );
-    }
-
-    if (error.message.includes('too large')) {
-      return NextResponse.json(
-        { message: error.message }, 
+        { 
+          error: 'File Too Large',
+          message: `File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit.` 
+        }, 
         { status: 413 }
       );
     }
 
-    if (error.message.includes('Invalid file type')) {
+    if (error.message?.includes('maxFiles')) {
       return NextResponse.json(
-        { message: error.message }, 
+        { 
+          error: 'Too Many Files',
+          message: `Maximum ${MAX_FILES} files allowed.` 
+        }, 
+        { status: 400 }
+      );
+    }
+
+    if (error.message?.includes('unsupported') || error.message?.includes('filter')) {
+      return NextResponse.json(
+        { 
+          error: 'Unsupported File Type',
+          message: 'Only JPEG, PNG, and WebP images are allowed.' 
+        }, 
         { status: 415 }
       );
     }
 
+    // Generic error
     return NextResponse.json(
-      { message: 'Failed to upload images. Please try again.' }, 
+      { 
+        error: 'Upload Failed',
+        message: 'An error occurred during upload. Please try again.' 
+      }, 
       { status: 500 }
     );
   }
+}
+
+/**
+ * GET /api/upload/product
+ * 
+ * Get product upload configuration info
+ */
+export async function GET() {
+  return NextResponse.json({
+    maxFileSize: MAX_FILE_SIZE,
+    maxFileSizeMB: MAX_FILE_SIZE / (1024 * 1024),
+    maxFiles: MAX_FILES,
+    allowedTypes: ALLOWED_TYPES,
+    allowedExtensions: ALLOWED_EXTENSIONS,
+    uploadPath: '/uploads/products/',
+  });
 }

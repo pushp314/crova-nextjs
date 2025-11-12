@@ -27,7 +27,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const navLinks = [
   { href: '/women', label: 'Women' },
-  { href: '/men',label: 'Men' },
+  { href: '/men', label: 'Men' },
+  { href: '/new-arrivals', label: 'New Arrivals' },
+  { href: '/about', label: 'Our Story' },
+  { href: '/contact', label: 'Contact' },
 ];
 
 export default function Header() {

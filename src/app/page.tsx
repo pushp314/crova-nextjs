@@ -4,6 +4,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Sparkles, Heart, Scissors } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import ProductGrid from '@/components/product/product-grid';
@@ -11,7 +12,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 import { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -36,7 +37,8 @@ export default function Home() {
 
   return (
     <>
-      <section className="relative h-[60vh] w-full text-white md:h-[80vh] -mx-4 sm:-mx-8 md:mx-0">
+      {/* Hero Section with Tagline */}
+      <section className="relative h-[70vh] w-full text-white md:h-[90vh] -mx-4 sm:-mx-8 md:mx-0">
         {heroImage && (
             <Image
               src={heroImage.imageUrl}
@@ -47,68 +49,210 @@ export default function Home() {
               priority
             />
         )}
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center p-4">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-4 text-sm md:text-base tracking-widest uppercase opacity-90"
+          >
+            Because your story deserves more than a print
+          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl max-w-4xl"
           >
-            Effortless Elegance
+            Every Stitch is a Statement
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-4 max-w-xl text-lg md:text-xl"
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-6 max-w-2xl text-lg md:text-xl leading-relaxed"
           >
-            Discover our new collection of timeless pieces.
+            Handpicked colors, bold threads, and embroidered stories — made for the ones who dare to stand out.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="mt-10 flex flex-col sm:flex-row gap-4"
           >
-            <Button asChild className="mt-8" size="lg">
-              <Link href="#featured-products">Shop Now</Link>
+            <Button asChild size="lg" className="text-base">
+              <Link href="#featured-products">
+                <Sparkles className="mr-2 h-5 w-5" />
+                Shop Now
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="text-base bg-white/10 hover:bg-white/20 text-white border-white">
+              <Link href="/custom">
+                <Scissors className="mr-2 h-5 w-5" />
+                Customize Yours
+              </Link>
             </Button>
           </motion.div>
         </div>
       </section>
 
-      <section className="py-8 md:hidden">
-        <div className="grid grid-cols-2 gap-4">
-          <Link href="/women" passHref>
-            <Card className="flex items-center justify-center p-6 aspect-video text-center font-semibold text-lg transition-all hover:bg-muted">
-              Shop Women
-            </Card>
-          </Link>
-          <Link href="/men" passHref>
-            <Card className="flex items-center justify-center p-6 aspect-video text-center font-semibold text-lg transition-all hover:bg-muted">
-              Shop Men
-            </Card>
-          </Link>
+      {/* Featured Section - New Drops */}
+      <section id="featured-products" className="py-16 md:py-24 bg-gradient-to-b from-background to-muted/20">
+        <div className="container">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold md:text-5xl mb-4">
+              New Drops.
+            </h2>
+            <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto">
+              Handpicked colors, bold threads, and embroidered stories — made for the ones who dare to stand out.
+            </p>
+          </motion.div>
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="aspect-[3/4] w-full" />
+                  <Skeleton className="h-6 w-3/4 mx-auto" />
+                  <Skeleton className="h-6 w-1/4 mx-auto" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ProductGrid products={featuredProducts} />
+          )}
         </div>
       </section>
 
-      <section id="featured-products" className="py-12 md:py-24">
-        <h2 className="mb-8 text-center text-3xl font-bold md:mb-12 md:text-4xl">
-          Featured Products
-        </h2>
-        {isLoading ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-            {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-                <Skeleton className="aspect-[3/4] w-full" />
-                <Skeleton className="h-6 w-3/4 mx-auto" />
-                <Skeleton className="h-6 w-1/4 mx-auto" />
-            </div>
-            ))}
+      {/* Our Promise Section */}
+      <section className="py-16 md:py-24 bg-muted/30">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <h2 className="text-3xl font-bold md:text-4xl mb-6">Our Promise</h2>
+            <p className="text-lg md:text-xl leading-relaxed text-muted-foreground mb-4">
+              Every Crova tee is crafted with precision embroidery, long-lasting comfort, and 100% cotton fabric.
+            </p>
+            <p className="text-xl md:text-2xl font-semibold">
+              No mass production. Just timeless pieces.
+            </p>
+          </motion.div>
         </div>
-        ) : (
-        <ProductGrid products={featuredProducts} />
-        )}
+      </section>
+
+      {/* Customer Highlight */}
+      <section className="py-16 md:py-24">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="max-w-3xl mx-auto"
+          >
+            <Card className="border-2">
+              <CardContent className="pt-12 pb-12 text-center">
+                <Heart className="h-12 w-12 mx-auto mb-6 text-primary" />
+                <blockquote className="text-2xl md:text-3xl font-medium mb-6 leading-relaxed">
+                  "It's not just a T-shirt — it's a feeling I wear."
+                </blockquote>
+                <p className="text-muted-foreground text-lg">— A Crova Customer</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Men's & Women's Edit */}
+      <section className="py-16 md:py-24 bg-muted/20">
+        <div className="container">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Link href="/men" className="group block">
+                <Card className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="aspect-[4/5] relative bg-gradient-to-br from-slate-100 to-slate-200">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center p-8">
+                        <h3 className="text-3xl md:text-4xl font-bold mb-3">Men's Edit</h3>
+                        <p className="text-lg text-muted-foreground">Classic fits with subtle boldness.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <CardContent className="p-6 text-center">
+                    <Button variant="outline" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      Explore Collection
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Link href="/women" className="group block">
+                <Card className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="aspect-[4/5] relative bg-gradient-to-br from-rose-100 to-peach-200">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center p-8">
+                        <h3 className="text-3xl md:text-4xl font-bold mb-3">Women's Edit</h3>
+                        <p className="text-lg text-muted-foreground">Soft hues, strong statements.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <CardContent className="p-6 text-center">
+                    <Button variant="outline" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      Explore Collection
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Custom Your Tee Section */}
+      <section className="py-16 md:py-24 bg-primary/5">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <Scissors className="h-16 w-16 mx-auto mb-6 text-primary" />
+            <h2 className="text-3xl font-bold md:text-5xl mb-6">Custom Your Tee</h2>
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
+              Upload your idea → We embroider it → You wear your art.
+            </p>
+            <Button asChild size="lg" className="text-base">
+              <Link href="/custom">
+                Start Creating
+              </Link>
+            </Button>
+          </motion.div>
+        </div>
       </section>
     </>
   );

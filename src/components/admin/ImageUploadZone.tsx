@@ -69,8 +69,9 @@ export function ImageUploadZone({
       setIsUploading(true);
       const formData = new FormData();
 
-      files.forEach((file, index) => {
-        formData.append(`file${index}`, file);
+      // Use 'files' as the field name (matches formidable endpoint)
+      files.forEach((file) => {
+        formData.append('files', file);
       });
 
       try {
@@ -90,6 +91,8 @@ export function ImageUploadZone({
           const newImages = [...images, ...data.filenames];
           onChange(newImages);
           toast.success(`Successfully uploaded ${data.filenames.length} image(s)`);
+        } else {
+          throw new Error('Invalid response from server');
         }
       } catch (error: any) {
         console.error('Upload error:', error);

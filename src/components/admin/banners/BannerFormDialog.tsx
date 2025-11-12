@@ -66,10 +66,14 @@ export function BannerFormDialog({ isOpen, onOpenChange, banner, onSave }: Banne
     if (isOpen) {
       if (banner) {
         form.reset({
-          ...banner,
+          title: banner.title,
           text: banner.text || '',
           linkUrl: banner.linkUrl || '',
           imageUrl: banner.imageUrl || '',
+          backgroundColor: banner.backgroundColor || '',
+          textColor: banner.textColor || '',
+          priority: banner.priority,
+          active: banner.active,
           startsAt: banner.startsAt ? new Date(banner.startsAt) : undefined,
           endsAt: banner.endsAt ? new Date(banner.endsAt) : undefined,
         });

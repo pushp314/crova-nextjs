@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { X } from 'lucide-react';
 import { type PromotionBanner } from '@/lib/types';
 import './TopTickerBanner.css';
@@ -13,35 +12,54 @@ const BANNER_HEIGHT = 40; // Height of the banner in pixels
 
 export default function TopTickerBanner() {
   const [banners, setBanners] = useState<PromotionBanner[]>([]);
-  const [isHidden, setIsHidden] = useState(true);
+  const [isHidden, setIsHidden] = useState(false); // Changed default to false
+  const [isLoading, setIsLoading] = useState(true);
 
   // Update CSS variable for main content margin
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const shouldShow = !isHidden && banners.length > 0;
+      const shouldShow = !isHidden && banners.length > 0 && !isLoading;
       document.documentElement.style.setProperty(
         '--banner-height',
         shouldShow ? `${BANNER_HEIGHT}px` : '0px'
       );
     }
-  }, [isHidden, banners.length]);
+  }, [isHidden, banners.length, isLoading]);
 
   useEffect(() => {
+    // Check localStorage on mount
     const hideUntil = localStorage.getItem('hideTickerUntil');
     if (hideUntil && Date.now() < parseInt(hideUntil, 10)) {
       setIsHidden(true);
+      setIsLoading(false);
+      return; // Don't fetch banners if manually hidden
     } else {
       setIsHidden(false);
     }
 
     async function fetchBanners() {
       try {
+        setIsLoading(true);
         const res = await fetch('/api/banners');
         if (res.ok) {
-          setBanners(await res.json());
+          const data = await res.json();
+          // Ensure data is an array
+          if (Array.isArray(data)) {
+            setBanners(data);
+            console.log('Banners loaded:', data.length, 'banner(s)');
+          } else {
+            console.error('Invalid banner data format:', data);
+            setBanners([]);
+          }
+        } else {
+          console.error('Failed to fetch banners:', res.status, res.statusText);
+          setBanners([]);
         }
       } catch (error) {
         console.error('Failed to fetch banners:', error);
+        setBanners([]);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchBanners();
@@ -52,7 +70,8 @@ export default function TopTickerBanner() {
     setIsHidden(true);
   };
 
-  if (isHidden || banners.length === 0) {
+  // Don't render while loading or if hidden or no banners
+  if (isLoading || isHidden || banners.length === 0) {
     return null;
   }
 
@@ -60,7 +79,15 @@ export default function TopTickerBanner() {
   const bannerContent = (
     <div className="flex items-center">
       {firstBanner.imageUrl && (
-        <Image src={firstBanner.imageUrl} alt="" width={20} height={20} className="inline-block mr-2 rounded-sm" />
+        // Using img tag instead of Next.js Image to avoid optimization issues with dynamic URLs
+        // eslint-disable-next-line @next/next/no-img-element
+        <img 
+          src={firstBanner.imageUrl} 
+          alt="" 
+          width={20} 
+          height={20} 
+          className="inline-block mr-2 rounded-sm" 
+        />
       )}
       <span className="font-semibold">{firstBanner.title}</span>
       {firstBanner.text && <span className="hidden sm:inline-block ml-2">{firstBanner.text}</span>}

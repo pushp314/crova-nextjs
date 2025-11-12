@@ -40,7 +40,14 @@ model User {
 
 **Purpose:** Track whether a welcome email has been sent to prevent duplicate emails.
 
-**Migration:** `20251112131948_add_welcome_email_sent_field`
+**Migration Steps:**
+```bash
+# Generate Prisma client with new field
+npx prisma generate
+
+# Create and apply migration
+npx prisma migrate dev --name add_welcome_email_sent_field
+```
 
 ### 3. Email Verification Flow (Credentials Sign-up)
 **File:** `src/app/api/auth/verify-email/route.ts`
@@ -326,6 +333,27 @@ const firstName = user.name?.split(' ')[0] || 'there';
 - No name provided → "there"
 - Single name → Uses that name
 - Multiple names → Uses first part
+
+### Issue: TypeScript errors about 'welcomeEmailSent' property
+
+**Error Message:**
+```
+Object literal may only specify known properties, and 'welcomeEmailSent' 
+does not exist in type 'UserUpdateInput'
+```
+
+**Solution:**
+```bash
+# 1. Ensure field is in prisma/schema.prisma
+# 2. Regenerate Prisma client
+npx prisma generate
+
+# 3. Create migration if needed
+npx prisma migrate dev --name add_welcome_email_sent_field
+
+# 4. Restart TypeScript server in VS Code
+# Press Cmd+Shift+P → "TypeScript: Restart TS Server"
+```
 
 ## Brand Voice Guidelines
 

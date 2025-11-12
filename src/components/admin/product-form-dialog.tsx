@@ -333,7 +333,7 @@ export function ProductFormDialog({
                         field.onChange(urls.map(url => ({ value: url })));
                       }}
                       maxImages={6}
-                      maxSizeMB={3}
+                      maxSizeMB={5}
                       disabled={isLoading}
                     />
                   </FormControl>

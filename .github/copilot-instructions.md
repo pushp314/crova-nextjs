@@ -46,14 +46,22 @@ export async function POST(req: Request) {
 - **Field types**: Use `z.coerce.number()` for form inputs that come as strings
 
 ### Image Upload System
-- **Multipart uploads**: Multer-based, admin-only (`src/app/api/upload/product/route.ts`)
-- **Storage**: Local filesystem at `/public/uploads/products/YYYY/MM/`
-- **Limits**: 6 images max, 3MB per file, JPEG/PNG/WebP only
-- **URL format**: Returns paths like `/uploads/products/2025/11/product-123.jpg`
+- **Multipart uploads**: Formidable-based, production-ready (`src/app/api/upload/route.ts`, `src/app/api/upload/product/route.ts`)
+- **Storage**: Local filesystem with bucket organization
+  - Products: `/public/uploads/products/` (flat structure)
+  - Banners: `/public/uploads/banners/YYYY/MM/` (date-organized)
+  - Proofs: `/public/uploads/proofs/YYYY/MM/` (date-organized)
+  - Avatars: `/public/uploads/avatars/` (flat structure)
+- **Limits**: 
+  - General upload: 5MB per file, JPEG/PNG/WebP only
+  - Product upload: 6 images max, 5MB per file
+  - Avatar upload: 1 file, 2MB max, JPEG/PNG/GIF/WebP
+- **URL format**: Returns paths like `/uploads/products/2025/01/product-123.jpg`
 - **Workflow**: 
-  1. Upload images to `/api/upload/product` → get URLs
-  2. Include URLs in product create/update payload
+  1. Upload images to `/api/upload?bucket=products` or `/api/upload/product` → get URLs/filenames
+  2. Include URLs/filenames in product create/update payload
 - **Component**: `ImageUploadZone` provides drag-drop UI with preview/remove
+- **Documentation**: See `docs/VPS_DEPLOYMENT_GUIDE.md`, `docs/UPLOAD_MIGRATION_GUIDE.md`
 
 ### Database Patterns (Prisma)
 - **Relation mode**: `prisma` (for compatibility with serverless DBs)
