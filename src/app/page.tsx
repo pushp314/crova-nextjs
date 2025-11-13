@@ -38,7 +38,7 @@ export default function Home() {
   return (
     <>
       {/* Hero Section with Tagline */}
-      <section className="relative h-[70vh] w-full text-white md:h-[90vh] -mx-4 sm:-mx-8 md:mx-0">
+      <section className="relative h-[70vh] w-full text-white md:h-[90vh] -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 xl:-mx-16">
         {heroImage && (
             <Image
               src={heroImage.imageUrl}
@@ -51,30 +51,14 @@ export default function Home() {
         )}
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center p-4">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-4 text-sm md:text-base tracking-widest uppercase opacity-90"
-          >
-            Because your story deserves more than a print
-          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl max-w-4xl"
           >
-            Every Stitch is a Statement
+            Because your story deserves more than a print
           </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-6 max-w-2xl text-lg md:text-xl leading-relaxed"
-          >
-            Handpicked colors, bold threads, and embroidered stories — made for the ones who dare to stand out.
-          </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

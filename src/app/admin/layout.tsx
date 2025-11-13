@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Package, ShoppingCart, Users, Tag, PanelLeft, Settings, Megaphone } from 'lucide-react';
+import { Home, Package, ShoppingCart, Users, Tag, PanelLeft, Settings, Megaphone, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Icons } from '@/components/icons';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -22,6 +22,7 @@ import { useSession, signOut } from 'next-auth/react';
 
 const navItems = [
   { href: '/admin', icon: Home, label: 'Dashboard' },
+  { href: '/admin/search', icon: Search, label: 'Search' },
   { href: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
   { href: '/admin/products', icon: Package, label: 'Products' },
   { href: '/admin/categories', icon: Tag, label: 'Categories' },

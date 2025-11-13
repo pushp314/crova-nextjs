@@ -1,14 +1,10 @@
-
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
-import ProductGrid from '@/components/product/product-grid';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { Product, Category } from '@/lib/types';
+import { useState, useEffect } from 'react';
 import { SearchIcon, SlidersHorizontal, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -17,7 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import {
   Sheet,
   SheetContent,
@@ -26,36 +21,32 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import type { Product, Category } from '@/lib/types';
 
-const LoadingSkeleton = () => (
-  <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div key={i} className="space-y-2">
-        <Skeleton className="aspect-[3/4] w-full" />
-        <Skeleton className="h-6 w-3/4 mx-auto" />
-        <Skeleton className="h-6 w-1/4 mx-auto" />
-      </div>
-    ))}
-  </div>
-);
-
-function SearchPageContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const query = searchParams.get('q') || '';
-  
+export function ProductSearch() {
+  const [query, setQuery] = useState('');
+  const [currentQuery, setCurrentQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState(query);
-  
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
-  const [sortBy, setSortBy] = useState('relevance');
+  const [featuredOnly, setFeaturedOnly] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Fetch categories
   useEffect(() => {
@@ -67,59 +58,68 @@ function SearchPageContent() {
           setCategories(data);
         }
       } catch (error) {
-        console.error('Failed to fetch categories', error);
+        console.error('Failed to fetch categories:', error);
       }
     };
     fetchCategories();
   }, []);
 
-  // Fetch products
+  // Fetch products with filters
   useEffect(() => {
+    if (!query) {
+      setProducts([]);
+      return;
+    }
+
     const fetchProducts = async () => {
-      if (!query) {
-        setProducts([]);
-        return;
-      }
       setIsLoading(true);
       try {
         const params = new URLSearchParams({ q: query });
         if (selectedCategory && selectedCategory !== 'all') params.append('category', selectedCategory);
         if (minPrice) params.append('minPrice', minPrice);
         if (maxPrice) params.append('maxPrice', maxPrice);
-        if (sortBy) params.append('sortBy', sortBy);
+        if (featuredOnly) params.append('featured', 'true');
         if (inStockOnly) params.append('inStock', 'true');
 
-        const res = await fetch(`/api/search?${params.toString()}`);
+        const res = await fetch(`/api/admin/search/products?${params}`);
         if (res.ok) {
           const data = await res.json();
           setProducts(data);
         } else {
+          toast.error('Failed to search products');
           setProducts([]);
         }
       } catch (error) {
-        console.error("Failed to fetch search results", error);
+        console.error('Search error:', error);
+        toast.error('Search failed');
         setProducts([]);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchProducts();
-  }, [query, selectedCategory, minPrice, maxPrice, sortBy, inStockOnly]);
 
-  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    router.push(`/search?q=${encodeURIComponent(currentQuery)}`);
+    fetchProducts();
+  }, [query, selectedCategory, minPrice, maxPrice, featuredOnly, inStockOnly]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuery(currentQuery);
   };
 
   const clearFilters = () => {
     setSelectedCategory('all');
     setMinPrice('');
     setMaxPrice('');
-    setSortBy('relevance');
+    setFeaturedOnly(false);
     setInStockOnly(false);
   };
 
-  const hasActiveFilters = selectedCategory !== 'all' || minPrice !== '' || maxPrice !== '' || sortBy !== 'relevance' || inStockOnly;
+  const hasActiveFilters =
+    selectedCategory !== 'all' ||
+    minPrice !== '' ||
+    maxPrice !== '' ||
+    featuredOnly ||
+    inStockOnly;
 
   const FilterPanel = () => (
     <div className="space-y-6">
@@ -160,15 +160,28 @@ function SearchPageContent() {
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="inStock"
-          checked={inStockOnly}
-          onCheckedChange={(checked) => setInStockOnly(checked as boolean)}
-        />
-        <Label htmlFor="inStock" className="cursor-pointer">
-          In Stock Only
-        </Label>
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="featured"
+            checked={featuredOnly}
+            onCheckedChange={(checked) => setFeaturedOnly(checked as boolean)}
+          />
+          <Label htmlFor="featured" className="cursor-pointer">
+            Featured Only
+          </Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="inStock"
+            checked={inStockOnly}
+            onCheckedChange={(checked) => setInStockOnly(checked as boolean)}
+          />
+          <Label htmlFor="inStock" className="cursor-pointer">
+            In Stock Only
+          </Label>
+        </div>
       </div>
 
       {hasActiveFilters && (
@@ -181,15 +194,15 @@ function SearchPageContent() {
   );
 
   return (
-    <div className="py-12 md:py-16">
-       <header className="mb-8 md:mb-12">
-        <h1 className="text-3xl font-bold md:text-4xl text-center">Search</h1>
-        <form onSubmit={handleSearch} className="mt-6 max-w-lg mx-auto flex gap-2">
-          <Input 
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Search Products</h2>
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <Input
             type="search"
             value={currentQuery}
             onChange={(e) => setCurrentQuery(e.target.value)}
-            placeholder="e.g. 'blue shirt for men'"
+            placeholder="Search by name, description, SKU..."
             className="flex-grow"
           />
           <Button type="submit" disabled={isLoading}>
@@ -197,10 +210,10 @@ function SearchPageContent() {
             <span className="sr-only">Search</span>
           </Button>
         </form>
-      </header>
+      </div>
 
       {query && (
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Mobile Filter Button */}
             <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -230,19 +243,6 @@ function SearchPageContent() {
               {products.length} {products.length === 1 ? 'result' : 'results'}
             </p>
           </div>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="relevance">Relevance</SelectItem>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="price-asc">Price: Low to High</SelectItem>
-              <SelectItem value="price-desc">Price: High to Low</SelectItem>
-              <SelectItem value="name">Name: A to Z</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       )}
 
@@ -260,20 +260,74 @@ function SearchPageContent() {
         {/* Results */}
         <div>
           {isLoading ? (
-            <LoadingSkeleton />
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Searching...</p>
+            </div>
           ) : products.length > 0 ? (
-            <ProductGrid products={products} />
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Image</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        {product.images[0] ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="h-12 w-12 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 bg-muted rounded" />
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {product.name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-xs">
+                        {product.id.slice(0, 8)}...
+                      </TableCell>
+                      <TableCell>{product.category?.name || 'N/A'}</TableCell>
+                      <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
+                          {product.stock > 0 ? `${product.stock} units` : 'Out of stock'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {product.featured && (
+                          <Badge variant="secondary">Featured</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : query ? (
+            <div className="text-center py-16 border rounded-md">
+              <SearchIcon className="mx-auto h-16 w-16 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-semibold">No products found</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Try adjusting your search or filters
+              </p>
+            </div>
           ) : (
-            <div className="text-center py-16">
-              <SearchIcon className="mx-auto h-24 w-24 text-muted-foreground" />
-              <h2 className="mt-4 text-2xl font-semibold">
-                {query ? 'No products found' : 'Search for products'}
-              </h2>
-              <p className="mt-2 text-muted-foreground">
-                {query 
-                  ? `We couldn't find anything for "${query}". Try adjusting your filters.`
-                  : 'Use the search bar above to find products by name, description, or category.'
-                }
+            <div className="text-center py-16 border rounded-md">
+              <SearchIcon className="mx-auto h-16 w-16 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-semibold">Search for products</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Enter a search query to find products
               </p>
             </div>
           )}
@@ -281,12 +335,4 @@ function SearchPageContent() {
       </div>
     </div>
   );
-}
-
-export default function SearchPage() {
-    return (
-        <Suspense fallback={<LoadingSkeleton />}>
-            <SearchPageContent />
-        </Suspense>
-    )
 }
