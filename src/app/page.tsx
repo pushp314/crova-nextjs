@@ -8,6 +8,7 @@ import { Sparkles, Heart, Scissors } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import ProductGrid from '@/components/product/product-grid';
+import VideoCarousel from '@/components/product/video-carousel';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 import { Product } from '@/lib/types';
@@ -230,47 +231,115 @@ export default function Home() {
         </div>
       </section>
 
-      {/* As Seen On You - Social Proof */}
-      <section className="py-16 md:py-24">
+      {/* See CROVA In Motion - Video Carousel */}
+      <section className="py-12 md:py-20 bg-gradient-to-b from-muted/20 to-background">
         <div className="container">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl font-bold md:text-5xl mb-4">
-              As Seen On You
-            </h2>
-            <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto">
-              Real customers, real stories. See how our community wears their CROVA.
-            </p>
-          </motion.div>
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            {/* Left - Video Carousel */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <VideoCarousel />
+            </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-            {[1, 2, 3].map((num, index) => (
+            {/* Right - Information */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="space-y-8"
+            >
+              <div className="space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                >
+                  <h2 className="text-3xl font-bold md:text-5xl lg:text-6xl mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    See CROVA In Motion
+                  </h2>
+                  <p className="text-muted-foreground text-lg md:text-xl leading-relaxed">
+                    Experience the craftsmanship, quality, and style that makes every piece unique.
+                  </p>
+                </motion.div>
+              </div>
+
+              <div className="space-y-5">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  className="flex items-start gap-4 group"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1.5">Precision Embroidery</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Every stitch crafted with care, bringing your design to life with intricate detail.
+                    </p>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="flex items-start gap-4 group"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Heart className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1.5">Premium Fabrics</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      100% cotton comfort meets durability. Soft, breathable, built to last.
+                    </p>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                  className="flex items-start gap-4 group"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Scissors className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1.5">Unique Designs</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      No mass production. Each piece thoughtfully designed to stand out.
+                    </p>
+                  </div>
+                </motion.div>
+              </div>
+
               <motion.div
-                key={num}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="pt-2"
               >
-                <Card className="overflow-hidden">
-                  <div className="aspect-[3/4] relative">
-                    <video
-                      controls
-                      playsInline
-                      className="w-full h-full object-cover"
-                      poster="/assets/products/featured-1.jpg"
-                    >
-                      <source src={`/assets/social/customer-${num}.mp4`} type="video/mp4" />
-                    </video>
-                  </div>
-                </Card>
+                <Button asChild size="lg" className="text-base">
+                  <Link href="/products">
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Explore Collection
+                  </Link>
+                </Button>
               </motion.div>
-            ))}
+            </motion.div>
           </div>
         </div>
       </section>
