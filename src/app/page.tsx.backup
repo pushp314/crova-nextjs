@@ -36,9 +36,9 @@ export default function Home() {
   }, []);
 
   return (
-    <>
-      {/* Hero Section with Fullscreen Video - Edge to Edge */}
-      <section className="relative h-screen w-screen text-white" style={{ marginLeft: 'calc(50% - 50vw)', marginTop: 'calc(-1 * (4rem + var(--banner-height, 0px)))', width: '100vw', maxWidth: '100vw' }}>
+    <div className="relative">
+      {/* Hero Section with Fullscreen Video */}
+      <section className="relative h-screen w-screen text-white -mt-[calc(4rem+var(--banner-height,0px))] ml-[calc(-50vw+50%)]">
         <video
           autoPlay
           loop
@@ -79,6 +79,7 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+      <div className="container">
 
       {/* Featured Section - New Drops */}
       <section id="featured-products" className="py-16 md:py-24 bg-gradient-to-b from-background to-muted/20">
@@ -298,6 +299,7 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-    </>
+      </div>
+    </div>
   );
 }
