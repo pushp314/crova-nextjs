@@ -13,7 +13,7 @@ const signupFormSchema = z.object({
 });
 
 async function sendVerificationEmail(email: string, token: string) {
-    const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
+    const verificationUrl = `${process.env.APP_URL}/api/auth/verify-email?token=${token}`;
     const html = `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; background-color: #FAF0E6; padding: 20px; border-radius: 8px;">
             <div style="background: linear-gradient(135deg, #FFDAB9 0%, #F08080 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">

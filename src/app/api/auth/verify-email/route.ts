@@ -55,8 +55,7 @@ export async function GET(req: Request) {
         }
         
         // Redirect to a success page or login page
-        const url = req.url.replace('/api/auth/verify-email', '/login');
-        const redirectUrl = new URL(url);
+        const redirectUrl = new URL(`${process.env.APP_URL}/login`);
         redirectUrl.searchParams.set('verified', 'true');
         return NextResponse.redirect(redirectUrl);
 
