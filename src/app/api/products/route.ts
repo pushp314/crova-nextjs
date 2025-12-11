@@ -5,8 +5,20 @@ import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/rbac';
 import { z } from 'zod';
-// Import the correct schema for API creation
-import { productCreateSchema } from '@/lib/validation/product';
+import { handleApiError } from '@/lib/api-error';
+
+// Schema for creating products
+const productCreateSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().min(1, 'Description is required'),
+  price: z.number().positive('Price must be positive'),
+  images: z.array(z.string()).min(1, 'At least one image is required'),
+  stock: z.number().int().min(0, 'Stock cannot be negative'),
+  categoryId: z.string().min(1, 'Category is required'),
+  sizes: z.array(z.string()).default([]),
+  colors: z.array(z.string()).default([]),
+  featured: z.boolean().default(false),
+});
 
 export async function GET(req: Request) {
   try {
@@ -31,8 +43,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(products);
   } catch (error) {
-    console.error('GET /api/products Error:', error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return handleApiError(error, 'GET /api/products');
   }
 }
 
@@ -42,40 +53,27 @@ export async function POST(req: Request) {
     requireRole(session, ['ADMIN']);
 
     const body = await req.json();
-    
-    // Use productCreateSchema, which expects arrays of strings
     const data = productCreateSchema.parse(body);
 
-    // No mapping is needed; data is already in the correct format
     const product = await prisma.product.create({
       data: {
         name: data.name,
         description: data.description,
         price: data.price,
-        images: data.images, // Directly use the string array
+        images: data.images,
         stock: data.stock,
         categoryId: data.categoryId,
-        sizes: data.sizes, // Directly use the string array
-        colors: data.colors, // Directly use the string array
+        sizes: data.sizes,
+        colors: data.colors,
         featured: data.featured,
       },
       include: {
-          category: true,
-      }
+        category: true,
+      },
     });
 
     return NextResponse.json(product, { status: 201 });
-  } catch (error)
-   {
-    if (error instanceof z.ZodError) {
-      // Improved error logging for easier debugging
-      console.error('Zod validation error on POST /api/products:', error.errors);
-      return NextResponse.json({ message: error.errors[0].message }, { status: 400 });
-    }
-     if (error instanceof Error && error.message === 'FORBIDDEN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    console.error('POST /api/products Error:', error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error, 'POST /api/products');
   }
 }

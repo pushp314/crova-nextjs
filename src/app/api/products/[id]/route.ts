@@ -4,15 +4,27 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/rbac';
-// Import the correct schema for API updates
-import { productUpdateSchema } from '@/lib/validation/product';
 import { handleApiError, ApiError } from '@/lib/api-error';
+import { z } from 'zod';
 
 interface RouteParams {
   params: Promise<{
     id: string;
   }>;
 }
+
+// Schema for updating products
+const productUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  price: z.number().positive().optional(),
+  images: z.array(z.string()).optional(),
+  stock: z.number().int().min(0).optional(),
+  categoryId: z.string().optional(),
+  sizes: z.array(z.string()).optional(),
+  colors: z.array(z.string()).optional(),
+  featured: z.boolean().optional(),
+});
 
 export async function GET(req: Request, { params }: RouteParams) {
   try {
@@ -53,7 +65,6 @@ export async function GET(req: Request, { params }: RouteParams) {
       ? ratings.reduce((sum, r) => sum + r.value, 0) / ratings.length
       : 0;
 
-
     return NextResponse.json({ ...product, averageRating });
   } catch (error) {
     return handleApiError(error, 'GET /api/products/[id]');
@@ -67,16 +78,14 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     const { id } = await params;
     const body = await req.json();
-
-    // Use productUpdateSchema, which expects arrays of strings
     const data = productUpdateSchema.parse(body);
 
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data, // Pass data directly, as it matches the schema
+      data,
       include: {
-        category: true
-      }
+        category: true,
+      },
     });
 
     return NextResponse.json(updatedProduct);

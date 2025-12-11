@@ -1,58 +1,114 @@
-'use client';
-
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/db';
+import { generateProductMetadata, generateProductJsonLd } from '@/lib/seo';
 import ProductDetailClient from '@/components/product/product-detail-client';
-import { useEffect, useState, use } from 'react';
-import { Product } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
 
-export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params); 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+interface ProductPageProps {
+  params: Promise<{ id: string }>;
+}
 
-  useEffect(() => {
-    if (!id) return;
+// Generate SEO metadata for product pages
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const { id } = await params;
 
-    const fetchProduct = async () => {
-      try {
-        const res = await fetch(`/api/products/${id}`);
-        if (!res.ok) {
-          notFound();
-          return;
-        }
-        const data = await res.json();
-        setProduct(data);
-      } catch (error) {
-        notFound();
-      } finally {
-        setIsLoading(false);
-      }
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        category: true,
+      },
+    });
+
+    if (!product) {
+      return {
+        title: 'Product Not Found',
+      };
+    }
+
+    return generateProductMetadata({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      images: product.images,
+      category: product.category?.name,
+      id: product.id,
+    });
+  } catch {
+    return {
+      title: 'Product',
     };
-
-    fetchProduct();
-  }, [id]);
-
-  if (isLoading) {
-    return (
-       <div className="py-12 md:py-16">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
-            <Skeleton className="aspect-[3/4] w-full" />
-            <div className="space-y-6">
-                <Skeleton className="h-10 w-3/4" />
-                <Skeleton className="h-8 w-1/4" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-24 w-full" />
-            </div>
-        </div>
-       </div>
-    )
   }
+}
+
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params;
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      category: true,
+      reviews: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+          rating: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
+    },
+  });
 
   if (!product) {
     notFound();
   }
 
-  return <ProductDetailClient product={product} />;
+  // Calculate average rating
+  const ratings = await prisma.rating.findMany({
+    where: { productId: id },
+  });
+
+  const averageRating =
+    ratings.length > 0
+      ? ratings.reduce((sum, r) => sum + r.value, 0) / ratings.length
+      : 0;
+
+  const productWithRating = {
+    ...product,
+    averageRating,
+    sizes: product.sizes || [],
+    colors: product.colors || [],
+    featured: product.featured,
+  };
+
+  // Generate JSON-LD structured data for this product
+  const productJsonLd = generateProductJsonLd({
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    images: product.images,
+    id: product.id,
+    inStock: product.stock > 0,
+    rating: averageRating > 0 ? averageRating : undefined,
+    reviewCount: ratings.length > 0 ? ratings.length : undefined,
+  });
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productJsonLd),
+        }}
+      />
+      <ProductDetailClient product={productWithRating} />
+    </>
+  );
 }

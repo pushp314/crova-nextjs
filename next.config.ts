@@ -39,6 +39,9 @@ const nextConfig: NextConfig = {
   },
 
   images: {
+    // For local uploads served by Nginx, skip Next.js optimization
+    // This prevents the "invalid image" error when images are served directly
+    unoptimized: process.env.NODE_ENV === 'production',
     remotePatterns: [
       {
         protocol: 'https',
