@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { requireRole } from '@/lib/rbac';
+import { Prisma } from '@prisma/client';
+import { handleApiError } from '@/lib/api-error';
 
 export async function GET(req: Request) {
   try {
@@ -17,28 +19,28 @@ export async function GET(req: Request) {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
 
-    // Build where clause
-    const whereClause: any = {};
+    // Build where clause with proper Prisma types
+    const whereClause: Prisma.ProductWhereInput = {};
 
     if (query) {
       whereClause.OR = [
         {
           name: {
             contains: query,
-            mode: 'insensitive'
+            mode: 'insensitive' as const
           }
         },
         {
           description: {
             contains: query,
-            mode: 'insensitive'
+            mode: 'insensitive' as const
           }
         },
         {
           category: {
             name: {
               contains: query,
-              mode: 'insensitive'
+              mode: 'insensitive' as const
             }
           }
         }
@@ -61,12 +63,16 @@ export async function GET(req: Request) {
       whereClause.stock = 0;
     }
 
+    // Build price filter
+    let priceFilter: Prisma.FloatFilter | undefined;
     if (minPrice) {
-      whereClause.price = { ...whereClause.price, gte: parseFloat(minPrice) };
+      priceFilter = { ...priceFilter, gte: parseFloat(minPrice) };
     }
-
     if (maxPrice) {
-      whereClause.price = { ...whereClause.price, lte: parseFloat(maxPrice) };
+      priceFilter = { ...priceFilter, lte: parseFloat(maxPrice) };
+    }
+    if (priceFilter) {
+      whereClause.price = priceFilter;
     }
 
     const products = await prisma.product.findMany({
@@ -81,10 +87,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json(products);
   } catch (error) {
-    if (error instanceof Error && error.message === 'FORBIDDEN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    console.error('GET /api/admin/search/products Error:', error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return handleApiError(error, 'GET /api/admin/search/products');
   }
 }

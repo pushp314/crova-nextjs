@@ -1,5 +1,17 @@
 # NOVA Fashion E-commerce Store
 
+
+# 3. Make deploy script executable
+chmod +x deploy.sh
+# 4. Run deploy
+./deploy.sh
+
+
+# Just push to GitHub, then:
+ssh user@your-vps
+cd /opt/crova
+./deploy.sh
+
 This is a modern e-commerce fashion store called "NOVA", built with Next.js and TypeScript.
 
 ## Overview

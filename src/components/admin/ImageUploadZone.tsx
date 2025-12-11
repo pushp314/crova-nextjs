@@ -6,6 +6,7 @@ import { X, Upload, Loader2, ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { compressImage, CompressionPresets, formatFileSize } from '@/lib/image-compression';
 
 interface ImageUploadZoneProps {
   images: string[];
@@ -26,6 +27,7 @@ export function ImageUploadZone({
 }: ImageUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFiles = useCallback(
@@ -86,7 +88,7 @@ export function ImageUploadZone({
         }
 
         const data = await response.json();
-        
+
         if (data.filenames && Array.isArray(data.filenames)) {
           // Convert filenames to full paths: /uploads/products/filename.jpg
           const imagePaths = data.filenames.map((filename: string) => `/uploads/products/${filename}`);
@@ -120,9 +122,31 @@ export function ImageUploadZone({
         errors.forEach(error => toast.error(error));
       }
 
-      // Upload valid files
+      // Compress and upload valid files
       if (valid.length > 0) {
-        await uploadFiles(valid);
+        setIsCompressing(true);
+
+        try {
+          const compressedFiles: File[] = [];
+
+          for (const file of valid) {
+            const result = await compressImage(file, CompressionPresets.product);
+            compressedFiles.push(result.file);
+
+            // Show compression result
+            if (result.compressionRatio > 1.1) {
+              toast.success(`Compressed ${file.name}`, {
+                description: `${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`,
+              });
+            }
+          }
+
+          setIsCompressing(false);
+          await uploadFiles(compressedFiles);
+        } catch {
+          setIsCompressing(false);
+          toast.error('Failed to compress images');
+        }
       }
 
       // Reset input
@@ -205,12 +229,16 @@ export function ImageUploadZone({
           />
 
           <div className="flex flex-col items-center justify-center text-center space-y-4">
-            {isUploading ? (
+            {isUploading || isCompressing ? (
               <>
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Uploading images...</p>
-                  <p className="text-xs text-muted-foreground">Please wait</p>
+                  <p className="text-sm font-medium">
+                    {isCompressing ? 'Optimizing images...' : 'Uploading images...'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {isCompressing ? 'Converting to WebP format' : 'Please wait'}
+                  </p>
                 </div>
               </>
             ) : (
@@ -224,7 +252,7 @@ export function ImageUploadZone({
                     <span className="text-primary">browse</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Max {maxImages} images, up to {maxSizeMB}MB each (JPEG, PNG, WebP)
+                    Images auto-compressed to WebP • Max {maxImages} images
                   </p>
                 </div>
               </>
@@ -257,10 +285,10 @@ export function ImageUploadZone({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {images.map((image, index) => {
               // If image is just a filename, prepend the path
-              const imageSrc = image.startsWith('/') || image.startsWith('http') 
-                ? image 
+              const imageSrc = image.startsWith('/') || image.startsWith('http')
+                ? image
                 : `/uploads/products/${image}`;
-              
+
               return (
                 <div
                   key={`${image}-${index}`}
@@ -273,23 +301,23 @@ export function ImageUploadZone({
                     className="object-cover"
                     sizes="(max-width: 640px) 50vw, 33vw"
                   />
-                
-                {/* Primary Badge */}
-                {index === 0 && (
-                  <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded">
-                    Primary
-                  </div>
-                )}
 
-                {/* Remove Button */}
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-                  onClick={() => handleRemoveImage(index)}
-                  disabled={disabled}
-                >
+                  {/* Primary Badge */}
+                  {index === 0 && (
+                    <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded">
+                      Primary
+                    </div>
+                  )}
+
+                  {/* Remove Button */}
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                    onClick={() => handleRemoveImage(index)}
+                    disabled={disabled}
+                  >
                     <X className="h-4 w-4" />
                   </Button>
 

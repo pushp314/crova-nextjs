@@ -1,15 +1,14 @@
-
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/rbac';
 import { updateOrderStatusSchema } from '@/lib/validations';
-import { z } from 'zod';
+import { handleApiError } from '@/lib/api-error';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // PUT /api/admin/orders/:id - Update order status (admin only)
@@ -18,7 +17,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
     const session = await getCurrentUser();
     requireRole(session, ['ADMIN']);
 
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { status } = updateOrderStatusSchema.parse(body);
 
@@ -33,18 +32,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
     });
 
     return NextResponse.json(updatedOrder);
-
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: error.errors[0].message }, { status: 400 });
-    }
-    if (error instanceof Error && error.message === 'FORBIDDEN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    if (error instanceof Error && 'code' in error && error.code === 'P2025') {
-      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
-    }
-    console.error(`PUT /api/admin/orders/${params.id} Error:`, error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return handleApiError(error, 'PUT /api/admin/orders/[id]');
   }
 }

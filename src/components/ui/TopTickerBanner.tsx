@@ -36,8 +36,7 @@ export default function TopTickerBanner() {
           // Ensure data is an array
           if (Array.isArray(data)) {
             setBanners(data);
-            console.log('Banners loaded:', data.length, 'banner(s)');
-            
+
             // Check localStorage AFTER fetching banners
             // Only hide if there are banners AND user has clicked close
             if (data.length > 0) {
@@ -53,15 +52,12 @@ export default function TopTickerBanner() {
               }
             }
           } else {
-            console.error('Invalid banner data format:', data);
             setBanners([]);
           }
         } else {
-          console.error('Failed to fetch banners:', res.status, res.statusText);
           setBanners([]);
         }
-      } catch (error) {
-        console.error('Failed to fetch banners:', error);
+      } catch {
         setBanners([]);
       } finally {
         setIsLoading(false);
@@ -73,7 +69,6 @@ export default function TopTickerBanner() {
   const handleClose = () => {
     const hideUntil = Date.now() + HIDE_DURATION;
     localStorage.setItem('hideTickerUntil', hideUntil.toString());
-    console.log('Banner hidden until:', new Date(hideUntil).toLocaleString());
     setIsHidden(true);
   };
 
@@ -88,12 +83,12 @@ export default function TopTickerBanner() {
       {firstBanner.imageUrl && (
         // Using img tag instead of Next.js Image to avoid optimization issues with dynamic URLs
         // eslint-disable-next-line @next/next/no-img-element
-        <img 
-          src={firstBanner.imageUrl} 
-          alt="" 
-          width={20} 
-          height={20} 
-          className="inline-block mr-2 rounded-sm" 
+        <img
+          src={firstBanner.imageUrl}
+          alt=""
+          width={20}
+          height={20}
+          className="inline-block mr-2 rounded-sm"
         />
       )}
       <span className="font-semibold">{firstBanner.title}</span>
@@ -102,15 +97,15 @@ export default function TopTickerBanner() {
   );
 
   const TickerItem = () => (
-     <div className="flex-shrink-0 whitespace-nowrap px-8 py-2">
-        {firstBanner.linkUrl ? (
-          <Link href={firstBanner.linkUrl} className="hover:underline">
-            {bannerContent}
-          </Link>
-        ) : (
-          <span>{bannerContent}</span>
-        )}
-      </div>
+    <div className="flex-shrink-0 whitespace-nowrap px-8 py-2">
+      {firstBanner.linkUrl ? (
+        <Link href={firstBanner.linkUrl} className="hover:underline">
+          {bannerContent}
+        </Link>
+      ) : (
+        <span>{bannerContent}</span>
+      )}
+    </div>
   );
 
   return (

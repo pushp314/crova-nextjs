@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { productSearch } from '@/ai/flows/product-search-flow';
+import { Prisma } from '@prisma/client';
+import { handleApiError } from '@/lib/api-error';
 
 export async function GET(req: Request) {
   try {
@@ -17,66 +19,67 @@ export async function GET(req: Request) {
     }
 
     // Use AI to get structured search terms
-    let searchTerms;
+    let searchTerms: { keywords: string[]; categories: string[] };
     try {
       searchTerms = await productSearch({ query });
-    } catch (aiError) {
-      console.error('AI search error, falling back to simple search:', aiError);
+    } catch {
+      // AI search error, fall back to simple search
       searchTerms = { keywords: [query], categories: [] };
     }
-    
+
     // Combine keywords into a single search string for 'contains'
     const searchString = searchTerms.keywords.join(' ');
 
-    // Build where clause dynamically
-    const whereClause: any = {
-      AND: [
-        {
-          OR: [
-            {
+    // Build where clause dynamically with proper Prisma types
+    const andConditions: Prisma.ProductWhereInput[] = [
+      {
+        OR: [
+          {
+            name: {
+              contains: searchString,
+              mode: 'insensitive' as const
+            },
+          },
+          {
+            description: {
+              contains: searchString,
+              mode: 'insensitive' as const
+            }
+          },
+          ...(searchTerms.categories.length > 0 ? [{
+            category: {
               name: {
-                contains: searchString,
-                mode: 'insensitive'
-              },
-            },
-            {
-              description: {
-                contains: searchString,
-                mode: 'insensitive'
+                in: searchTerms.categories,
               }
-            },
-            ...(searchTerms.categories.length > 0 ? [{
-              category: {
-                name: {
-                  in: searchTerms.categories,
-                  mode: 'insensitive'
-                }
-              }
-            }] : [])
-          ]
-        }
-      ]
-    };
+            }
+          }] : [])
+        ]
+      }
+    ];
 
     // Add filters
     if (categoryId) {
-      whereClause.AND.push({ categoryId });
+      andConditions.push({ categoryId });
     }
 
     if (minPrice) {
-      whereClause.AND.push({ price: { gte: parseFloat(minPrice) } });
+      andConditions.push({ price: { gte: parseFloat(minPrice) } });
     }
 
     if (maxPrice) {
-      whereClause.AND.push({ price: { lte: parseFloat(maxPrice) } });
+      andConditions.push({ price: { lte: parseFloat(maxPrice) } });
     }
 
     if (inStock === 'true') {
-      whereClause.AND.push({ stock: { gt: 0 } });
+      andConditions.push({ stock: { gt: 0 } });
     }
 
-    // Build order by clause
-    let orderBy: any = {};
+    const whereClause: Prisma.ProductWhereInput = {
+      AND: andConditions
+    };
+
+    // Build order by clause with proper Prisma types
+    let orderBy: Prisma.ProductOrderByWithRelationInput;
     switch (sortBy) {
       case 'price-asc':
         orderBy = { price: 'asc' };
@@ -95,16 +98,15 @@ export async function GET(req: Request) {
     }
 
     const products = await prisma.product.findMany({
-        where: whereClause,
-        include: {
-            category: true
-        },
-        orderBy
+      where: whereClause,
+      include: {
+        category: true
+      },
+      orderBy
     });
 
     return NextResponse.json(products);
   } catch (error) {
-    console.error('GET /api/search Error:', error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return handleApiError(error, 'GET /api/search');
   }
 }

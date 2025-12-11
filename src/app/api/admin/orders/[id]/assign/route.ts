@@ -1,16 +1,15 @@
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { requireRole } from '@/lib/rbac';
 import { assignOrderSchema } from '@/lib/validation/delivery';
-import { z } from 'zod';
 import { UserRole } from '@prisma/client';
+import { handleApiError, ApiError } from '@/lib/api-error';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string; // Order ID
-  };
+  }>;
 }
 
 // POST /api/admin/orders/:id/assign
@@ -19,12 +18,13 @@ export async function POST(req: Request, { params }: RouteParams) {
     const session = await getCurrentUser();
     requireRole(session, ['ADMIN']);
 
+    const { id } = await params;
     const body = await req.json();
     const { assignedToId } = assignOrderSchema.parse(body);
 
     if (assignedToId === 'unassign') {
-       const updatedOrder = await prisma.order.update({
-        where: { id: params.id },
+      const updatedOrder = await prisma.order.update({
+        where: { id },
         data: { assignedToId: null },
         include: {
           assignedTo: {
@@ -40,11 +40,11 @@ export async function POST(req: Request, { params }: RouteParams) {
     });
 
     if (!deliveryUser || deliveryUser.role !== UserRole.DELIVERY) {
-      return NextResponse.json({ message: 'The selected user is not a delivery person.' }, { status: 400 });
+      throw ApiError.badRequest('The selected user is not a delivery person.');
     }
 
     const updatedOrder = await prisma.order.update({
-      where: { id: params.id },
+      where: { id },
       data: { assignedToId },
       include: {
         assignedTo: {
@@ -55,13 +55,6 @@ export async function POST(req: Request, { params }: RouteParams) {
 
     return NextResponse.json(updatedOrder);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: error.errors[0].message }, { status: 400 });
-    }
-    if (error instanceof Error && error.message === 'FORBIDDEN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    console.error(`[ORDER_ASSIGN_${params.id}]`, error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return handleApiError(error, 'POST /api/admin/orders/[id]/assign');
   }
 }

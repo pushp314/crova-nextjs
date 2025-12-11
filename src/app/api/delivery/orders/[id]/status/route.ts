@@ -1,16 +1,15 @@
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { requireRole } from '@/lib/rbac';
 import { updateDeliveryStatusSchema } from '@/lib/validation/delivery';
-import { z } from 'zod';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { handleApiError, ApiError } from '@/lib/api-error';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string; // Order ID
-  };
+  }>;
 }
 
 const validTransitions: { [key in OrderStatus]?: OrderStatus[] } = {
@@ -25,53 +24,46 @@ export async function POST(req: Request, { params }: RouteParams) {
     const session = await getCurrentUser();
     const activeSession = requireRole(session, ['DELIVERY']);
 
+    const { id } = await params;
     const body = await req.json();
     const { status, deliveryProofUrl } = updateDeliveryStatusSchema.parse(body);
 
     const order = await prisma.order.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!order) {
-      return NextResponse.json({ message: 'Order not found.' }, { status: 404 });
+      throw ApiError.notFound('Order');
     }
 
     if (order.assignedToId !== activeSession.user.id) {
-      return NextResponse.json({ message: 'You are not assigned to this order.' }, { status: 403 });
+      throw ApiError.forbidden('You are not assigned to this order.');
     }
 
     const allowedTransitions = validTransitions[order.status];
     if (!allowedTransitions || !allowedTransitions.includes(status)) {
-      return NextResponse.json({ message: `Invalid status transition from ${order.status} to ${status}.` }, { status: 400 });
+      throw ApiError.badRequest(`Invalid status transition from ${order.status} to ${status}.`);
     }
 
-    const data: { status: OrderStatus; deliveryProofUrl?: string } = { status };
+    const data: { status: OrderStatus; deliveryProofUrl?: string; paymentStatus?: PaymentStatus } = { status };
     if (deliveryProofUrl) {
       data.deliveryProofUrl = deliveryProofUrl;
     }
-    
+
     if (status === OrderStatus.DELIVERED) {
-        // Also update payment status for COD orders
-        if (order.paymentMethod === 'cod') {
-           (data as any).paymentStatus = 'PAID';
-        }
+      // Also update payment status for COD orders
+      if (order.paymentMethod === 'cod') {
+        data.paymentStatus = PaymentStatus.PAID;
+      }
     }
 
     const updatedOrder = await prisma.order.update({
-      where: { id: params.id },
+      where: { id },
       data,
     });
 
     return NextResponse.json(updatedOrder);
-
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: error.errors[0].message }, { status: 400 });
-    }
-    if (error instanceof Error && error.message === 'FORBIDDEN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    console.error(`[DELIVERY_STATUS_UPDATE_${params.id}]`, error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return handleApiError(error, 'POST /api/delivery/orders/[id]/status');
   }
 }

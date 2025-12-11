@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/rbac';
 import { UserRole } from '@prisma/client';
 import { z } from 'zod';
+import { handleApiError, ApiError } from '@/lib/api-error';
 
 type RouteParams = {
   params: Promise<{
@@ -67,19 +68,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
       user: updatedUser,
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { message: error.errors[0].message },
-        { status: 400 }
-      );
-    }
-    if (error instanceof Error && error.message === 'FORBIDDEN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    console.error('PUT /api/admin/users/[id]/role Error:', error);
-    return NextResponse.json(
-      { message: 'An internal server error occurred.' },
-      { status: 500 }
-    );
+    return handleApiError(error, 'PUT /api/admin/users/[id]/role');
   }
 }
+

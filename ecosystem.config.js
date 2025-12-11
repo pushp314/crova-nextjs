@@ -1,20 +1,35 @@
+// PM2 Ecosystem Configuration
+// Usage: pm2 start ecosystem.config.js
 
 module.exports = {
   apps: [
     {
-      name: 'crova-nextjs',
+      name: 'crova',
       script: 'npm',
       args: 'start',
-      exec_mode: 'fork',
-      instances: 1,
+      cwd: '/opt/crova',
+      instances: 'max', // Use all CPU cores
+      exec_mode: 'cluster',
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        NEXTAUTH_URL: 'https://crova.in',
-        DATABASE_URL: 'postgresql://admin:admin123@localhost:5432/crovadb?schema=public',
+        PORT: 3000,
       },
+      env_production: {
+        NODE_ENV: 'production',
+        PORT: 3000,
+      },
+      // Logging
+      error_file: '/var/log/crova/error.log',
+      out_file: '/var/log/crova/out.log',
+      log_file: '/var/log/crova/combined.log',
+      time: true,
+      // Graceful restart
+      kill_timeout: 5000,
+      wait_ready: true,
+      listen_timeout: 10000,
     },
   ],
 };

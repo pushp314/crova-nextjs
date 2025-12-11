@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { requireRole } from '@/lib/rbac';
+import { Prisma } from '@prisma/client';
+import { handleApiError } from '@/lib/api-error';
 
 export async function GET(req: Request) {
   try {
@@ -14,28 +16,28 @@ export async function GET(req: Request) {
     const role = searchParams.get('role');
     const emailVerified = searchParams.get('emailVerified');
 
-    // Build where clause
-    const whereClause: any = {};
+    // Build where clause with proper Prisma types
+    const whereClause: Prisma.UserWhereInput = {};
 
     if (query) {
       whereClause.OR = [
         {
           name: {
             contains: query,
-            mode: 'insensitive'
+            mode: 'insensitive' as const
           }
         },
         {
           email: {
             contains: query,
-            mode: 'insensitive'
+            mode: 'insensitive' as const
           }
         }
       ];
     }
 
     if (role) {
-      whereClause.role = role;
+      whereClause.role = role as Prisma.EnumUserRoleFilter;
     }
 
     if (emailVerified === 'true') {
@@ -63,10 +65,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json(users);
   } catch (error) {
-    if (error instanceof Error && error.message === 'FORBIDDEN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    console.error('GET /api/admin/search/users Error:', error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return handleApiError(error, 'GET /api/admin/search/users');
   }
 }

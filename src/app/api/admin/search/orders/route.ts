@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { requireRole } from '@/lib/rbac';
+import { Prisma } from '@prisma/client';
+import { handleApiError } from '@/lib/api-error';
 
 export async function GET(req: Request) {
   try {
@@ -15,22 +17,22 @@ export async function GET(req: Request) {
     const paymentStatus = searchParams.get('paymentStatus');
     const paymentMethod = searchParams.get('paymentMethod');
 
-    // Build where clause
-    const whereClause: any = {};
+    // Build where clause with proper Prisma types
+    const whereClause: Prisma.OrderWhereInput = {};
 
     if (query) {
       whereClause.OR = [
         {
           id: {
             contains: query,
-            mode: 'insensitive'
+            mode: 'insensitive' as const
           }
         },
         {
           user: {
             name: {
               contains: query,
-              mode: 'insensitive'
+              mode: 'insensitive' as const
             }
           }
         },
@@ -38,25 +40,25 @@ export async function GET(req: Request) {
           user: {
             email: {
               contains: query,
-              mode: 'insensitive'
+              mode: 'insensitive' as const
             }
           }
         },
         {
           paymentId: {
             contains: query,
-            mode: 'insensitive'
+            mode: 'insensitive' as const
           }
         }
       ];
     }
 
     if (status) {
-      whereClause.status = status;
+      whereClause.status = status as Prisma.EnumOrderStatusFilter;
     }
 
     if (paymentStatus) {
-      whereClause.paymentStatus = paymentStatus;
+      whereClause.paymentStatus = paymentStatus as Prisma.EnumPaymentStatusFilter;
     }
 
     if (paymentMethod) {
@@ -95,10 +97,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json(orders);
   } catch (error) {
-    if (error instanceof Error && error.message === 'FORBIDDEN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    console.error('GET /api/admin/search/orders Error:', error);
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+    return handleApiError(error, 'GET /api/admin/search/orders');
   }
 }
