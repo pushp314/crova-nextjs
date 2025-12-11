@@ -35,14 +35,6 @@ export async function GET(req: Request) {
             contains: query,
             mode: 'insensitive' as const
           }
-        },
-        {
-          category: {
-            name: {
-              contains: query,
-              mode: 'insensitive' as const
-            }
-          }
         }
       ];
     }
@@ -77,9 +69,6 @@ export async function GET(req: Request) {
 
     const products = await prisma.product.findMany({
       where: whereClause,
-      include: {
-        category: true
-      },
       orderBy: {
         createdAt: 'desc'
       }
