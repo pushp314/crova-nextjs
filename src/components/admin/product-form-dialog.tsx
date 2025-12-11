@@ -78,8 +78,8 @@ const renderArrayField = (
     <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
       <PlusCircle className="mr-2 h-4 w-4" /> Add {label.slice(0, -1)}
     </Button>
-     <FormMessage>
-        {form.formState.errors[label.toLowerCase() as "sizes" | "colors"]?.root?.message}
+    <FormMessage>
+      {form.formState.errors[label.toLowerCase() as "sizes" | "colors"]?.root?.message}
     </FormMessage>
   </div>
 );
@@ -103,17 +103,17 @@ export function ProductFormDialog({
       stock: 0,
       categoryId: "",
       images: [],
-      sizes: [{value: ""}],
-      colors: [{value: ""}],
+      sizes: [{ value: "" }],
+      colors: [{ value: "" }],
       featured: false,
     },
   });
-  
+
   const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
     control: form.control,
     name: "sizes",
   });
-  
+
   const { fields: colorFields, append: appendColor, remove: removeColor } = useFieldArray({
     control: form.control,
     name: "colors",
@@ -127,7 +127,7 @@ export function ProductFormDialog({
         description: product.description,
         price: product.price,
         stock: product.stock,
-        categoryId: product.categoryId,
+        categoryId: product.categoryId ?? '',
         images: product.images.map(img => ({ value: img })),
         sizes: product.sizes.map(size => ({ value: size })),
         colors: product.colors.map(color => ({ value: color })),
@@ -141,8 +141,8 @@ export function ProductFormDialog({
         stock: 0,
         categoryId: "",
         images: [],
-        sizes: [{value: ""}],
-        colors: [{value: ""}],
+        sizes: [{ value: "" }],
+        colors: [{ value: "" }],
         featured: false,
       });
     }
@@ -158,7 +158,7 @@ export function ProductFormDialog({
       sizes: data.sizes.map(s => s.value),
       colors: data.colors.map(c => c.value),
     };
-    
+
     const url = isEditing ? `/api/products/${product?.id}` : '/api/products';
     const method = isEditing ? 'PUT' : 'POST';
 
@@ -177,18 +177,18 @@ export function ProductFormDialog({
       }
 
       const savedProduct = await res.json();
-      
+
       toast.dismiss('product-save');
       toast.success(`Product ${isEditing ? 'updated' : 'created'} successfully!`, {
         description: `${savedProduct.name} has been ${isEditing ? 'updated' : 'added to your store'}.`
       });
-      
+
       onSave(savedProduct);
       onOpenChange(false);
     } catch (error: any) {
       toast.dismiss('product-save');
-      toast.error("Operation Failed", { 
-        description: error.message || 'Something went wrong. Please check the console for details.' 
+      toast.error("Operation Failed", {
+        description: error.message || 'Something went wrong. Please check the console for details.'
       });
       console.error('Error in onSubmit:', error);
     } finally {
@@ -229,50 +229,50 @@ export function ProductFormDialog({
                 </FormItem>
               )}
             />
-             <div className="grid grid-cols-2 gap-4">
-                <FormField
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
                 control={form.control}
                 name="price"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                     <FormLabel>Price</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        {...field} 
-                        value={field.value || ''} 
+                      <Input
+                        type="number"
+                        step="0.01"
+                        {...field}
+                        value={field.value || ''}
                         onChange={e => {
                           const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
                           field.onChange(isNaN(value) ? 0 : value);
-                        }} 
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-                <FormField
+              />
+              <FormField
                 control={form.control}
                 name="stock"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                     <FormLabel>Stock</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        {...field} 
-                        value={field.value || ''} 
+                      <Input
+                        type="number"
+                        {...field}
+                        value={field.value || ''}
                         onChange={e => {
                           const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
                           field.onChange(isNaN(value) ? 0 : value);
-                        }} 
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
+              />
             </div>
             <FormField
               control={form.control}
@@ -296,7 +296,7 @@ export function ProductFormDialog({
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="featured"
               render={({ field }) => (
@@ -314,7 +314,7 @@ export function ProductFormDialog({
                 </FormItem>
               )}
             />
-            
+
             <Separator />
 
             {/* Image Upload Section */}
@@ -343,9 +343,9 @@ export function ProductFormDialog({
             />
 
             <Separator />
-            
+
             {renderArrayField("Sizes", sizeFields, removeSize, () => appendSize({ value: "" }), form)}
-            
+
             <Separator />
 
             {renderArrayField("Colors", colorFields, removeColor, () => appendColor({ value: "" }), form)}

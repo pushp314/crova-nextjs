@@ -33,9 +33,6 @@ export async function GET(req: Request) {
         ...(featured === 'true' ? { featured: true } : {}),
       },
       take: limit ? parseInt(limit) : undefined,
-      include: {
-        category: true,
-      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -66,9 +63,6 @@ export async function POST(req: Request) {
         sizes: data.sizes,
         colors: data.colors,
         featured: data.featured,
-      },
-      include: {
-        category: true,
       },
     });
 

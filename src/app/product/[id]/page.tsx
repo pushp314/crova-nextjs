@@ -15,9 +15,6 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   try {
     const product = await prisma.product.findUnique({
       where: { id },
-      include: {
-        category: true,
-      },
     });
 
     if (!product) {
@@ -31,7 +28,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       description: product.description,
       price: product.price,
       images: product.images,
-      category: product.category?.name,
+      category: undefined,
       id: product.id,
     });
   } catch {
@@ -47,7 +44,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
-      category: true,
       reviews: {
         include: {
           user: {

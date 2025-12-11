@@ -45,14 +45,7 @@ export async function GET(req: Request) {
               contains: searchString,
               mode: 'insensitive' as const
             }
-          },
-          ...(searchTerms.categories.length > 0 ? [{
-            category: {
-              name: {
-                in: searchTerms.categories,
-              }
-            }
-          }] : [])
+          }
         ]
       }
     ];
@@ -99,9 +92,6 @@ export async function GET(req: Request) {
 
     const products = await prisma.product.findMany({
       where: whereClause,
-      include: {
-        category: true
-      },
       orderBy
     });
 

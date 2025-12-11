@@ -33,7 +33,6 @@ export async function GET(req: Request, { params }: RouteParams) {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        category: true,
         reviews: {
           include: {
             user: {
@@ -83,9 +82,6 @@ export async function PUT(req: Request, { params }: RouteParams) {
     const updatedProduct = await prisma.product.update({
       where: { id },
       data,
-      include: {
-        category: true,
-      },
     });
 
     return NextResponse.json(updatedProduct);
