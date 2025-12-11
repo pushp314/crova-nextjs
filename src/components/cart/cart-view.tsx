@@ -1,7 +1,6 @@
 
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Plus, Minus, X, ShoppingCart, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
@@ -11,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import SafeImage from "@/components/ui/safe-image";
 
 export default function CartView() {
     const { cartItems, updateQuantity, removeFromCart, totalPrice, cartCount, isLoading } = useCart();
@@ -45,7 +45,7 @@ export default function CartView() {
                     {cartItems.map((item) => (
                         <li key={item.id} className="flex gap-4">
                             <div className="relative h-32 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                                <Image
+                                <SafeImage
                                     src={item.product.images[0]}
                                     alt={item.product.name}
                                     fill

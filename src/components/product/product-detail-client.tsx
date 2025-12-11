@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { Heart, Loader2 } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { useWishlist } from '@/contexts/wishlist-context';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
 import ProductReviews from './product-reviews';
+import SafeImage from '@/components/ui/safe-image';
 
 type ProductDetailClientProps = {
   product: Product;
@@ -39,31 +39,31 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       addToWishlist(product);
     }
   };
-  
+
   return (
     <div className="container py-12 md:py-16">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
         <Carousel className="w-full">
-            <CarouselContent>
-                {product.images.map((image, index) => (
-                <CarouselItem key={index}>
-                    <Card className="overflow-hidden border-none shadow-none rounded-none">
-                        <div className="relative aspect-[3/4]">
-                            <Image
-                                src={image}
-                                alt={`${product.name} - view ${index + 1}`}
-                                fill
-                                className="object-cover"
-                                sizes="(max-width: 768px) 100vw, 50vw"
-                                priority={index === 0}
-                            />
-                        </div>
-                    </Card>
-                </CarouselItem>
-                ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
+          <CarouselContent>
+            {product.images.map((image, index) => (
+              <CarouselItem key={index}>
+                <Card className="overflow-hidden border-none shadow-none rounded-none">
+                  <div className="relative aspect-[3/4]">
+                    <SafeImage
+                      src={image}
+                      alt={`${product.name} - view ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      priority={index === 0}
+                    />
+                  </div>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="left-4" />
+          <CarouselNext className="right-4" />
         </Carousel>
 
         <div className="space-y-6">
@@ -127,7 +127,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <span className="sr-only">Add to Wishlist</span>
             </Button>
           </div>
-          
+
           <Accordion type="single" collapsible className="w-full" defaultValue="description">
             <AccordionItem value="description">
               <AccordionTrigger>Product Description</AccordionTrigger>
@@ -135,7 +135,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <p>{product.description}</p>
               </AccordionContent>
             </AccordionItem>
-             <AccordionItem value="stock">
+            <AccordionItem value="stock">
               <AccordionTrigger>Availability</AccordionTrigger>
               <AccordionContent>
                 <p>{product.stock > 0 ? `${product.stock} items in stock.` : 'This product is currently out of stock.'}</p>

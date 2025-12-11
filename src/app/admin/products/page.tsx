@@ -1,8 +1,7 @@
-
 'use client';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { getProductImageUrl } from '@/lib/image-helper';
+import SafeImage from '@/components/ui/safe-image';
 import {
   Table,
   TableBody,
@@ -45,24 +44,24 @@ import { ProductFormDialog } from '@/components/admin/product-form-dialog';
 
 const LoadingSkeleton = () => (
   <Card>
-   <CardHeader>
-     <Skeleton className="h-8 w-1/4" />
-     <Skeleton className="h-4 w-1/2" />
-   </CardHeader>
-   <CardContent>
-     <div className="space-y-4">
-       {Array.from({ length: 5 }).map((_, i) => (
-         <div key={i} className="flex items-center space-x-4">
-           <Skeleton className="h-16 w-16" />
-           <div className="w-full space-y-2">
-             <Skeleton className="h-6 w-3/4" />
+    <CardHeader>
+      <Skeleton className="h-8 w-1/4" />
+      <Skeleton className="h-4 w-1/2" />
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex items-center space-x-4">
+            <Skeleton className="h-16 w-16" />
+            <div className="w-full space-y-2">
+              <Skeleton className="h-6 w-3/4" />
               <Skeleton className="h-4 w-1/4" />
-           </div>
-         </div>
-       ))}
-     </div>
-   </CardContent>
- </Card>
+            </div>
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
 );
 
 export default function AdminProductsPage() {
@@ -101,12 +100,12 @@ export default function AdminProductsPage() {
     setEditingProduct(null);
     setIsDialogOpen(true);
   };
-  
+
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     setIsDialogOpen(true);
   };
-  
+
   const handleDeleteProduct = async (productId: string) => {
     try {
       const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
@@ -135,54 +134,54 @@ export default function AdminProductsPage() {
 
   return (
     <>
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Products</CardTitle>
-          <CardDescription>Manage all products in your store.</CardDescription>
-        </div>
-        <Button onClick={handleAddProduct}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Product
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">
-                  Image
-                </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={product.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={getProductImageUrl(product.images[0])}
-                      width="64"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Products</CardTitle>
+            <CardDescription>Manage all products in your store.</CardDescription>
+          </div>
+          <Button onClick={handleAddProduct}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Product
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="hidden w-[100px] sm:table-cell">
+                    Image
+                  </TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <SafeImage
+                        alt={product.name}
+                        className="aspect-square rounded-md object-cover"
+                        height={64}
+                        src={getProductImageUrl(product.images[0])}
+                        width={64}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>
                       {product.category?.name || 'Uncategorized'}
-                  </TableCell>
-                  <TableCell>{product.stock}</TableCell>
-                  <TableCell className="text-right">₹{product.price.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end">
-                      <DropdownMenu>
+                    </TableCell>
+                    <TableCell>{product.stock}</TableCell>
+                    <TableCell className="text-right">₹{product.price.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-end">
+                        <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button aria-haspopup="true" size="icon" variant="ghost">
                               <MoreHorizontal className="h-4 w-4" />
@@ -220,25 +219,25 @@ export default function AdminProductsPage() {
                             </AlertDialog>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        {products.length === 0 && !isLoading && (
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          {products.length === 0 && !isLoading && (
             <p className="py-8 text-center text-muted-foreground">No products found.</p>
-        )}
-      </CardContent>
-    </Card>
-    <ProductFormDialog
+          )}
+        </CardContent>
+      </Card>
+      <ProductFormDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         product={editingProduct}
         categories={categories}
         onSave={onProductSaved}
-     />
+      />
     </>
   );
 }
