@@ -11,11 +11,11 @@ server {
     listen 443 ssl;
     server_name crova.in www.crova.in;
 
-    # SSL Configuration (assuming standard paths, adjust if different)
-    # ssl_certificate /etc/letsencrypt/live/crova.in/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/crova.in/privkey.pem;
-    # include /etc/letsencrypt/options-ssl-nginx.conf;
-    # ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    # SSL Configuration
+    ssl_certificate /etc/letsencrypt/live/crova.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/crova.in/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
     root /var/www/crova-nextjs/public;
 
