@@ -10,31 +10,13 @@ import { Button } from '@/components/ui/button';
 import ProductGrid from '@/components/product/product-grid';
 import VideoCarousel from '@/components/product/video-carousel';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useEffect, useState } from 'react';
-import { Product } from '@/lib/types';
+import { useFeaturedProducts } from '@/hooks/use-products';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function Home() {
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: featuredProducts = [], isLoading } = useFeaturedProducts(4);
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
-
-  useEffect(() => {
-    const fetchFeatured = async () => {
-      try {
-        const res = await fetch('/api/products?featured=true&limit=4');
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const products = await res.json();
-        setFeaturedProducts(products);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchFeatured();
-  }, []);
 
   return (
     <>
@@ -84,7 +66,7 @@ export default function Home() {
       {/* Featured Section - New Drops */}
       <section id="featured-products" className="py-16 md:py-24 bg-gradient-to-b from-background to-muted/20">
         <div className="container">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

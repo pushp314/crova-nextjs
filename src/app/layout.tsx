@@ -4,6 +4,8 @@ import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import { CartProvider } from '@/contexts/cart-context';
 import { WishlistProvider } from '@/contexts/wishlist-context';
 import { ConditionalLayout } from '@/components/layout/conditional-layout';
+import { QueryProvider } from '@/components/providers/query-provider';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { cn } from '@/lib/utils';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -29,15 +31,19 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased')}>
         <AuthProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <ConditionalLayout>
-                {children}
-              </ConditionalLayout>
-              <Toaster />
-              <SonnerToaster />
-            </CartProvider>
-          </WishlistProvider>
+          <QueryProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <ErrorBoundary>
+                  <ConditionalLayout>
+                    {children}
+                  </ConditionalLayout>
+                </ErrorBoundary>
+                <Toaster />
+                <SonnerToaster />
+              </CartProvider>
+            </WishlistProvider>
+          </QueryProvider>
         </AuthProvider>
         <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       </body>

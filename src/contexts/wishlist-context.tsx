@@ -1,9 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import type { Product, WishlistItem } from '@/lib/types';
 import { toast } from "sonner";
+import { useWishlistQuery, useAddToWishlist, useRemoveFromWishlist } from '@/hooks/use-wishlist';
 
 interface WishlistContextType {
   wishlistItems: WishlistItem[];
@@ -17,90 +18,53 @@ interface WishlistContextType {
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
-  const { data: session, status } = useSession();
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
 
-  const fetchWishlist = useCallback(async () => {
-    if (status === 'authenticated') {
-      setIsLoading(true);
-      try {
-        const res = await fetch('/api/wishlist');
-        if (res.ok) {
-          const data = await res.json();
-          setWishlistItems(data.items || []);
-        } else {
-          setWishlistItems([]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch wishlist:", error);
-        setWishlistItems([]);
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (status === 'unauthenticated') {
-      setWishlistItems([]); // Clear wishlist for logged-out users
-      setIsLoading(false);
-    }
-  }, [status]);
+  // React Query hooks
+  const { data: wishlistData, isLoading } = useWishlistQuery(isAuthenticated);
+  const addToWishlistMutation = useAddToWishlist();
+  const removeFromWishlistMutation = useRemoveFromWishlist();
 
-  useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
+  const wishlistItems = wishlistData?.items ?? [];
 
-  const addToWishlist = async (product: Product) => {
-     if (status !== 'authenticated') {
+  const addToWishlist = useCallback((product: Product) => {
+    if (status !== 'authenticated') {
       toast.error("Please log in to add items to your wishlist.");
       return;
     }
-    if (isWishlisted(product.id)) return;
-    
-    try {
-      const res = await fetch('/api/wishlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: product.id }),
-      });
-      if (!res.ok) throw new Error('Failed to add to wishlist');
-
-      const updatedWishlist = await res.json();
-      setWishlistItems(updatedWishlist.items);
-      
-      toast.success("Added to wishlist", {
-        description: `${product.name} has been added to your wishlist.`,
-      });
-    } catch(e) {
-      toast.error("Failed to add to wishlist.");
+    // Check if already wishlisted
+    if (wishlistItems.some(item => item.productId === product.id)) {
+      return;
     }
-  };
+    addToWishlistMutation.mutate({ productId: product.id, product });
+  }, [status, wishlistItems, addToWishlistMutation]);
 
-  const removeFromWishlist = async (productId: string) => {
-    const itemToRemove = wishlistItems.find(item => item.product.id === productId)?.product;
+  const removeFromWishlist = useCallback((productId: string) => {
+    const item = wishlistItems.find(item => item.product.id === productId);
+    removeFromWishlistMutation.mutate({
+      productId,
+      productName: item?.product.name
+    });
+  }, [wishlistItems, removeFromWishlistMutation]);
 
-    try {
-      const res = await fetch(`/api/wishlist/${productId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to remove from wishlist');
-
-      setWishlistItems(prevItems => prevItems.filter(item => item.productId !== productId));
-
-      if (itemToRemove) {
-        toast.info("Removed from wishlist", {
-          description: `${itemToRemove.name} has been removed from your wishlist.`,
-        });
-      }
-    } catch (e) {
-      toast.error("Failed to remove from wishlist.");
-    }
-  };
-
-  const isWishlisted = (productId: string) => {
+  const isWishlisted = useCallback((productId: string) => {
     return wishlistItems.some(item => item.productId === productId);
-  };
-  
+  }, [wishlistItems]);
+
   const wishlistCount = wishlistItems.length;
 
+  const contextValue = useMemo(() => ({
+    wishlistItems,
+    addToWishlist,
+    removeFromWishlist,
+    isWishlisted,
+    wishlistCount,
+    isLoading,
+  }), [wishlistItems, addToWishlist, removeFromWishlist, isWishlisted, wishlistCount, isLoading]);
+
   return (
-    <WishlistContext.Provider value={{ wishlistItems, addToWishlist, removeFromWishlist, isWishlisted, wishlistCount, isLoading }}>
+    <WishlistContext.Provider value={contextValue}>
       {children}
     </WishlistContext.Provider>
   );
