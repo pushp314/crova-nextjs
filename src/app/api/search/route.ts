@@ -45,14 +45,33 @@ export async function GET(req: Request) {
               contains: searchString,
               mode: 'insensitive' as const
             }
-          }
+          },
+          ...(searchTerms.categories.length > 0 ? [{
+            categories: {
+              some: {
+                category: {
+                  name: {
+                    in: searchTerms.categories,
+                    mode: 'insensitive' as const
+                  }
+                }
+              }
+            }
+          }] : [])
         ]
       }
     ];
 
     // Add filters
     if (categoryId) {
-      andConditions.push({ categoryId });
+      // Filter by category ID using the many-to-many relationship
+      andConditions.push({
+        categories: {
+          some: {
+            categoryId: categoryId
+          }
+        }
+      });
     }
 
     if (minPrice) {

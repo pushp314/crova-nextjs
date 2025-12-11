@@ -11,37 +11,40 @@ export const productCreateSchema = z.object({
   name: z.string()
     .min(2, 'Product name must be at least 2 characters')
     .max(100, 'Product name must not exceed 100 characters'),
-  
+
   description: z.string()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must not exceed 2000 characters'),
-  
+
   price: z.number()
     .positive('Price must be a positive number')
     .min(0.01, 'Price must be at least 0.01')
     .max(999999.99, 'Price is too high'),
-  
+
   stock: z.number()
     .int('Stock must be an integer')
     .min(0, 'Stock cannot be negative')
     .max(999999, 'Stock value is too high'),
-  
-  categoryId: z.string()
-    .min(1, 'Category is required')
-    .cuid('Invalid category ID format'),
-  
+
+  // Deprecated: singular categoryId kept for backward compatibility if needed
+  categoryId: z.string().optional(),
+
+  // New: Array of category IDs
+  categoryIds: z.array(z.string().cuid('Invalid category ID format'))
+    .min(1, 'At least one category is required'),
+
   images: z.array(z.string().min(1, 'Image path cannot be empty'))
     .min(1, 'At least one product image is required')
     .max(6, 'Maximum 6 images allowed per product'),
-  
+
   sizes: z.array(z.string().min(1, 'Size cannot be empty'))
     .min(1, 'At least one size is required')
     .max(20, 'Maximum 20 sizes allowed'),
-  
+
   colors: z.array(z.string().min(1, 'Color cannot be empty'))
     .min(1, 'At least one color is required')
     .max(20, 'Maximum 20 colors allowed'),
-  
+
   featured: z.boolean()
     .default(false)
     .optional(),
@@ -53,44 +56,45 @@ export const productUpdateSchema = z.object({
     .min(2, 'Product name must be at least 2 characters')
     .max(100, 'Product name must not exceed 100 characters')
     .optional(),
-  
+
   description: z.string()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must not exceed 2000 characters')
     .optional(),
-  
+
   price: z.number()
     .positive('Price must be a positive number')
     .min(0.01, 'Price must be at least 0.01')
     .max(999999.99, 'Price is too high')
     .optional(),
-  
+
   stock: z.number()
     .int('Stock must be an integer')
     .min(0, 'Stock cannot be negative')
     .max(999999, 'Stock value is too high')
     .optional(),
-  
-  categoryId: z.string()
-    .min(1, 'Category is required')
-    .cuid('Invalid category ID format')
+
+  categoryId: z.string().optional(),
+
+  categoryIds: z.array(z.string().cuid('Invalid category ID format'))
+    .min(1, 'At least one category is required')
     .optional(),
-  
+
   images: z.array(z.string().min(1, 'Image path cannot be empty'))
     .min(1, 'At least one product image is required')
     .max(6, 'Maximum 6 images allowed per product')
     .optional(),
-  
+
   sizes: z.array(z.string().min(1, 'Size cannot be empty'))
     .min(1, 'At least one size is required')
     .max(20, 'Maximum 20 sizes allowed')
     .optional(),
-  
+
   colors: z.array(z.string().min(1, 'Color cannot be empty'))
     .min(1, 'At least one color is required')
     .max(20, 'Maximum 20 colors allowed')
     .optional(),
-  
+
   featured: z.boolean()
     .optional(),
 });
@@ -118,7 +122,9 @@ export const productFormSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters'),
   price: z.coerce.number().positive('Price must be a positive number'),
   stock: z.coerce.number().int().min(0, 'Stock cannot be negative'),
-  categoryId: z.string().min(1, 'Category is required'),
+  // We keep categoryId as optional in the form, but will map `categoryIds`
+  categoryId: z.string().optional(),
+  categoryIds: z.array(z.string()).min(1, 'At least one category is required'),
   images: z.array(z.object({ value: z.string().min(1) })).min(1, 'At least one image is required'),
   sizes: z.array(z.object({ value: z.string().min(1) })).min(1, 'At least one size is required'),
   colors: z.array(z.object({ value: z.string().min(1) })).min(1, 'At least one color is required'),

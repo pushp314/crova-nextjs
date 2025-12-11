@@ -28,13 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import type { Product, Category } from "@/lib/types";
 // Import from the correct validation file
 import { productFormSchema } from "@/lib/validation/product";
@@ -101,7 +95,8 @@ export function ProductFormDialog({
       description: "",
       price: 0,
       stock: 0,
-      categoryId: "",
+      categoryId: "", // Keep for typing but unused
+      categoryIds: [],
       images: [],
       sizes: [{ value: "" }],
       colors: [{ value: "" }],
@@ -122,12 +117,26 @@ export function ProductFormDialog({
 
   useEffect(() => {
     if (isOpen && product) {
+      // Determine selected categories
+      // If product has 'categories' array (new), use that. 
+      // Fallback to 'categoryId' (old) or 'category' object
+      let selectedIds: string[] = [];
+
+      if (product.categories && product.categories.length > 0) {
+        selectedIds = product.categories.map(c => c.id);
+      } else if (product.categoryId) {
+        selectedIds = [product.categoryId];
+      } else if (product.category) {
+        selectedIds = [product.category.id];
+      }
+
       form.reset({
         name: product.name,
         description: product.description,
         price: product.price,
         stock: product.stock,
         categoryId: product.categoryId ?? '',
+        categoryIds: selectedIds,
         images: product.images.map(img => ({ value: img })),
         sizes: product.sizes.map(size => ({ value: size })),
         colors: product.colors.map(color => ({ value: color })),
@@ -140,6 +149,7 @@ export function ProductFormDialog({
         price: 0,
         stock: 0,
         categoryId: "",
+        categoryIds: [],
         images: [],
         sizes: [{ value: "" }],
         colors: [{ value: "" }],
@@ -157,6 +167,10 @@ export function ProductFormDialog({
       images: data.images.map(img => img.value),
       sizes: data.sizes.map(s => s.value),
       colors: data.colors.map(c => c.value),
+      // Ensure categoryIds is sent, even if empty (validation should catch it)
+      categoryIds: data.categoryIds,
+      // We can also send categoryId as the FIRST selected category for backward compatibility
+      categoryId: data.categoryIds[0] || "",
     };
 
     const url = isEditing ? `/api/products/${product?.id}` : '/api/products';
@@ -274,28 +288,26 @@ export function ProductFormDialog({
                 )}
               />
             </div>
+
             <FormField
               control={form.control}
-              name="categoryId"
+              name="categoryIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map(cat => (
-                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Categories</FormLabel>
+                  <FormControl>
+                    <MultiSelect
+                      options={categories.map(c => ({ label: c.name, value: c.id }))}
+                      selected={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select categories..."
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="featured"

@@ -21,6 +21,7 @@ const productUpdateSchema = z.object({
   images: z.array(z.string()).optional(),
   stock: z.number().int().min(0).optional(),
   categoryId: z.string().optional(),
+  categoryIds: z.array(z.string()).optional(), // New field
   sizes: z.array(z.string()).optional(),
   colors: z.array(z.string()).optional(),
   featured: z.boolean().optional(),
@@ -33,6 +34,11 @@ export async function GET(req: Request, { params }: RouteParams) {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
+        categories: {
+          include: {
+            category: true
+          }
+        },
         reviews: {
           include: {
             user: {
@@ -79,9 +85,54 @@ export async function PUT(req: Request, { params }: RouteParams) {
     const body = await req.json();
     const data = productUpdateSchema.parse(body);
 
-    const updatedProduct = await prisma.product.update({
-      where: { id },
-      data,
+    // Transaction for update
+    const updatedProduct = await prisma.$transaction(async (tx) => {
+      // Update basic fields
+      const p = await tx.product.update({
+        where: { id },
+        data: {
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          images: data.images,
+          stock: data.stock,
+          categoryId: data.categoryId,
+          sizes: data.sizes,
+          colors: data.colors,
+          featured: data.featured,
+        },
+      });
+
+      // Update category links if categoryIds provided
+      if (data.categoryIds) {
+        // Delete existing links
+        await tx.productCategory.deleteMany({
+          where: { productId: id }
+        });
+
+        // Create new links
+        if (data.categoryIds.length > 0) {
+          await tx.productCategory.createMany({
+            data: data.categoryIds.map(cid => ({
+              productId: id,
+              categoryId: cid
+            }))
+          });
+        }
+      } else if (data.categoryId) {
+        // Fallback: if only categoryId provided (legacy update), replace links
+        await tx.productCategory.deleteMany({
+          where: { productId: id }
+        });
+        await tx.productCategory.create({
+          data: {
+            productId: id,
+            categoryId: data.categoryId
+          }
+        });
+      }
+
+      return p;
     });
 
     return NextResponse.json(updatedProduct);
@@ -98,6 +149,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     const { id } = await params;
 
     await prisma.$transaction(async (tx) => {
+      await tx.productCategory.deleteMany({ where: { productId: id } }); // Delete links
       await tx.rating.deleteMany({ where: { productId: id } });
       await tx.review.deleteMany({ where: { productId: id } });
       await tx.cartItem.deleteMany({ where: { productId: id } });

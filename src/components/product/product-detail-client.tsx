@@ -70,6 +70,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <h1 className="text-3xl font-bold md:text-4xl">{product.name}</h1>
           <p className="text-2xl font-semibold">₹{product.price.toFixed(2)}</p>
 
+          {(product.categories && product.categories.length > 0) ? (
+            <div className="flex gap-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Categories:</span>
+              <span>{product.categories.map(c => c.category.name).join(', ')}</span>
+            </div>
+          ) : product.category ? (
+            <div className="flex gap-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Category:</span>
+              <span>{product.category.name}</span>
+            </div>
+          ) : null}
+
           {product.colors.length > 1 && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Color: {selectedColor}</h2>

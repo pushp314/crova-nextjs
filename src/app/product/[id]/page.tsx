@@ -15,6 +15,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   try {
     const product = await prisma.product.findUnique({
       where: { id },
+      include: {
+        categories: {
+          include: {
+            category: true
+          }
+        }
+      }
     });
 
     if (!product) {
@@ -23,12 +30,15 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       };
     }
 
+    // Use the first category for metadata if available
+    const categoryName = product.categories.length > 0 ? product.categories[0].category.name : undefined;
+
     return generateProductMetadata({
       name: product.name,
       description: product.description,
       price: product.price,
       images: product.images,
-      category: undefined,
+      category: categoryName,
       id: product.id,
     });
   } catch {
@@ -44,6 +54,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
+      categories: {
+        include: {
+          category: true
+        }
+      },
       reviews: {
         include: {
           user: {
@@ -104,6 +119,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
           __html: JSON.stringify(productJsonLd),
         }}
       />
+      {/* 
+        Note: We probably need to update ProductDetailClient to display multiple categories. 
+        For now, we pass the product object which contains 'categories'.
+      */}
       <ProductDetailClient product={productWithRating} />
     </>
   );

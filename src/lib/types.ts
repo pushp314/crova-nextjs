@@ -1,8 +1,9 @@
 
-import type { Product as PrismaProduct, Category as PrismaCategory, Order as PrismaOrder, OrderStatus, OrderItem as PrismaOrderItem, PaymentStatus, User as PrismaUser, Review as PrismaReview, Rating as PrismaRating, Address as PrismaAddress, PromotionBanner as PrismaPromotionBanner } from '@prisma/client';
+import type { Product as PrismaProduct, Category as PrismaCategory, ProductCategory as PrismaProductCategory, Order as PrismaOrder, OrderStatus, OrderItem as PrismaOrderItem, PaymentStatus, User as PrismaUser, Review as PrismaReview, Rating as PrismaRating, Address as PrismaAddress, PromotionBanner as PrismaPromotionBanner } from '@prisma/client';
 
 export type Product = Omit<PrismaProduct, 'createdAt' | 'updatedAt'> & {
   category?: PrismaCategory;
+  categories?: (PrismaProductCategory & { category: PrismaCategory })[];
   sizes: string[];
   colors: string[];
   featured: boolean;

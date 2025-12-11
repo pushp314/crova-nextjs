@@ -14,10 +14,14 @@ const productCreateSchema = z.object({
   price: z.number().positive('Price must be positive'),
   images: z.array(z.string()).min(1, 'At least one image is required'),
   stock: z.number().int().min(0, 'Stock cannot be negative'),
-  categoryId: z.string().min(1, 'Category is required'),
+  categoryId: z.string().optional(), // Make optional
+  categoryIds: z.array(z.string()).optional(), // New field
   sizes: z.array(z.string()).default([]),
   colors: z.array(z.string()).default([]),
   featured: z.boolean().default(false),
+}).refine(data => data.categoryId || (data.categoryIds && data.categoryIds.length > 0), {
+  message: "At least one category is required",
+  path: ["categoryIds"]
 });
 
 export async function GET(req: Request) {
@@ -29,13 +33,27 @@ export async function GET(req: Request) {
 
     const products = await prisma.product.findMany({
       where: {
-        ...(categoryId ? { categoryId } : {}),
+        ...(categoryId ? {
+          // Support filtering by categoryId via the join table (backward compatibility logic)
+          categories: {
+            some: {
+              categoryId: categoryId
+            }
+          }
+        } : {}),
         ...(featured === 'true' ? { featured: true } : {}),
       },
       take: limit ? parseInt(limit) : undefined,
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        categories: {
+          include: {
+            category: true
+          }
+        }
+      }
     });
 
     return NextResponse.json(products);
@@ -52,18 +70,42 @@ export async function POST(req: Request) {
     const body = await req.json();
     const data = productCreateSchema.parse(body);
 
-    const product = await prisma.product.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        images: data.images,
-        stock: data.stock,
-        categoryId: data.categoryId,
-        sizes: data.sizes,
-        colors: data.colors,
-        featured: data.featured,
-      },
+    // Determine category IDs to link
+    let categoryIds: string[] = [];
+    if (data.categoryIds && data.categoryIds.length > 0) {
+      categoryIds = data.categoryIds;
+    } else if (data.categoryId) {
+      categoryIds = [data.categoryId];
+    }
+
+    // Use transaction to create product and links
+    const product = await prisma.$transaction(async (tx) => {
+      // Create product
+      const p = await tx.product.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          images: data.images,
+          stock: data.stock,
+          categoryId: data.categoryId, // Keep populating for now if available
+          sizes: data.sizes,
+          colors: data.colors,
+          featured: data.featured,
+        },
+      });
+
+      // Create category links
+      if (categoryIds.length > 0) {
+        await tx.productCategory.createMany({
+          data: categoryIds.map(cid => ({
+            productId: p.id,
+            categoryId: cid
+          }))
+        });
+      }
+
+      return p;
     });
 
     return NextResponse.json(product, { status: 201 });
