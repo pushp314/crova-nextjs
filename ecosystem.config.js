@@ -7,7 +7,7 @@ module.exports = {
       name: 'crova',
       script: 'npm',
       args: 'start',
-      cwd: '/opt/crova',
+      cwd: '/var/www/crova-nextjs',
       instances: 'max', // Use all CPU cores
       exec_mode: 'cluster',
       autorestart: true,
