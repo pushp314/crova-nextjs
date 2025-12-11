@@ -5,7 +5,7 @@ module.exports = {
   apps: [
     {
       name: 'crova',
-      script: 'npm',
+      script: 'node_modules/next/dist/bin/next',
       args: 'start',
       cwd: '/var/www/crova-nextjs',
       instances: 'max', // Use all CPU cores
