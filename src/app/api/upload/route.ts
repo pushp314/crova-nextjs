@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { isAdmin, isDelivery } from '@/lib/rbac';
 import { promises as fs } from 'fs';
 import path from 'path';
+import sharp from 'sharp';
 
 // Configuration
 const BASE_UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
@@ -22,22 +23,22 @@ async function ensureUploadDir(dirPath: string) {
 // Save uploaded file to disk
 async function saveFile(file: File, uploadDir: string): Promise<string> {
   await ensureUploadDir(uploadDir);
-  
+
   const buffer = Buffer.from(await file.arrayBuffer());
-  
+
   // Generate unique filename
   const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
   const sanitizedName = file.name
     .replace(/[^a-zA-Z0-9.-]/g, '_')
     .replace(/_{2,}/g, '_') || 'upload';
-  
+
   const extension = path.extname(sanitizedName);
   const basename = path.basename(sanitizedName, extension);
   const filename = `${basename}-${uniqueSuffix}${extension}`;
-  
+
   const filepath = path.join(uploadDir, filename);
   await fs.writeFile(filepath, buffer);
-  
+
   return filename;
 }
 
@@ -117,72 +118,71 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 7. Validate and save files
+    // 7. Validate and save files using Sharp
     const validatedUrls: string[] = [];
 
     for (const file of files) {
-      // Validate file type
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        // Clean up already saved files
+      try {
+        const buffer = Buffer.from(await file.arrayBuffer());
+
+        // Initialize sharp instance
+        const image = sharp(buffer);
+        const metadata = await image.metadata();
+
+        // Validate that it is a real image
+        if (!metadata.format || !['jpeg', 'jpg', 'png', 'webp'].includes(metadata.format)) {
+          throw new Error('Invalid image format detected by processing engine.');
+        }
+
+        // Optional: limit dimensions to prevent massive pixel bombs
+        if ((metadata.width && metadata.width > 4096) || (metadata.height && metadata.height > 4096)) {
+          // Resize if too large, maintaining aspect ratio
+          image.resize(4096, 4096, { fit: 'inside' });
+        }
+
+        // Re-encode image to strip metadata and ensure safety
+        // We start with the original format, or convert to webp if preferred. 
+        // Let's stick to the detected format or default to jpeg/png as appropriate, 
+        // but for simplicity and safety, we can standardize on the output extension or respect input.
+        // Here we just re-process to buffer to sanitize it.
+
+        const processedBuffer = await image.toBuffer();
+
+        // Generate safe filename with correct extension from metadata
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        const originalName = file.name.replace(/\.[^/.]+$/, ""); // strip extension
+        const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50) || 'image';
+
+        // Ensure extension matches the actual format
+        const ext = metadata.format === 'jpeg' ? '.jpg' : `.${metadata.format}`;
+        const filename = `${sanitizedName}-${uniqueSuffix}${ext}`;
+        const filepath = path.join(uploadDir, filename);
+
+        await fs.writeFile(filepath, processedBuffer);
+
+        const publicUrl = `/uploads/${bucket}/${year}/${month}/${filename}`;
+        validatedUrls.push(publicUrl);
+
+      } catch (err) {
+        // Clean up any successfully uploaded files from this batch if one fails? 
+        // Or just report error for this one? 
+        // The original code failed the whole batch. Let's stick to that safety.
+        console.error('Image processing error:', err);
+
+        // Cleanup
         for (const url of validatedUrls) {
-          const filepath = path.join(process.cwd(), 'public', url);
-          try {
-            await fs.unlink(filepath);
-          } catch {}
+          const fp = path.join(process.cwd(), 'public', url);
+          await fs.unlink(fp).catch(() => { });
         }
 
         return NextResponse.json(
           {
-            error: 'Invalid File Type',
-            message: `File type not allowed. Only JPEG, PNG, and WebP are supported.`,
+            error: 'Invalid Image',
+            message: 'File is not a valid image or is corrupted.',
           },
           { status: 415 }
         );
       }
-
-      // Validate file extension
-      const ext = path.extname(file.name).toLowerCase();
-      if (!ALLOWED_EXTENSIONS.includes(ext)) {
-        // Clean up already saved files
-        for (const url of validatedUrls) {
-          const filepath = path.join(process.cwd(), 'public', url);
-          try {
-            await fs.unlink(filepath);
-          } catch {}
-        }
-
-        return NextResponse.json(
-          {
-            error: 'Invalid File Type',
-            message: `File extension ${ext} not allowed. Only JPG, PNG, and WebP are supported.`,
-          },
-          { status: 415 }
-        );
-      }
-
-      // Validate file size
-      if (file.size > MAX_FILE_SIZE) {
-        // Clean up already saved files
-        for (const url of validatedUrls) {
-          const filepath = path.join(process.cwd(), 'public', url);
-          try {
-            await fs.unlink(filepath);
-          } catch {}
-        }
-
-        return NextResponse.json(
-          {
-            error: 'File Too Large',
-            message: `File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit.`,
-          },
-          { status: 413 }
-        );
-      }
-
-      // Save file and generate public URL
-      const filename = await saveFile(file, uploadDir);
-      const publicUrl = `/uploads/${bucket}/${year}/${month}/${filename}`;
-      validatedUrls.push(publicUrl);
     }
 
     // 9. Return response
